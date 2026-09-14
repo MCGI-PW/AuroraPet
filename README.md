@@ -3,14 +3,13 @@
 > **Entrega da Sprint 3 - Desenvolvimento Front-End & Mobile**  
 > Aplicação desenvolvida com **React Native**, **Expo Router**, **TanStack Query**, **Firebase Authentication** e backend HTTP integrado com **Node.js/Express**.
 
----
 
-## 📹 Link do Vídeo de Apresentação
+## 👥 Integrantes do Grupo
 
-- **Link no YouTube:** [INSERIR_LINK_AQUI_ANTES_DE_ENVIAR](https://youtube.com/)
-- **Duração Máxima:** Até 5 minutos
-- **Formato:** Demonstração prática do aplicativo em execução real (Web / Emulador / Smartphone) com narração em áudio cobrindo todos os requisitos avaliativos.
-
+Maicon      RM561279
+Gabriel F.  RM561551
+Charlles    RM566482
+Iago D.     RM565708
 ---
 
 ## 📋 1. Descrição do Problema e Solução Proposta
@@ -201,10 +200,3 @@ Para atingir a pontuação máxima (15 pontos do vídeo + 20 pontos de documenta
 
 ---
 
-## 👥 Integrantes do Grupo
-
-- Nome do Aluno 1 - RM XXXXX
-- Nome do Aluno 2 - RM XXXXX
-- Nome do Aluno 3 - RM XXXXX
-- Nome do Aluno 4 - RM XXXXX
-- Nome do Aluno 5 - RM XXXXX
