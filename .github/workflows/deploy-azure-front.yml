@@ -1,0 +1,96 @@
+# CI/CD do front AuroraPet (Expo web) -> Azure App Service
+# Gerado por criar-webapp-front.sh (Sprint 4). Push na branch = build + deploy.
+# Pull request = só build (CI), sem deploy.
+#
+# Configuração usada (gravada pelo script no repositório):
+#   secrets.AZURE_WEBAPP_PUBLISH_PROFILE_FRONT  -> credencial de deploy do Web App
+#   vars.FRONT_APP_NAME                         -> nome do Web App
+#   vars.EXPO_PUBLIC_API_URL                    -> URL da API Java, terminando em /api
+#   secrets.EXPO_PUBLIC_FIREBASE_*  (opcional)  -> sem eles o app usa o modo demo
+
+name: CI/CD Front - Azure Web App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Um deploy por vez; um novo push espera o anterior terminar
+concurrency:
+  group: deploy-front-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build (Expo web)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Conferir URL da API
+        run: |
+          if [ -z "${{ vars.EXPO_PUBLIC_API_URL }}" ]; then
+            echo "::warning::vars.EXPO_PUBLIC_API_URL vazia: o site vai chamar http://localhost:3001/api"
+          else
+            echo "API: ${{ vars.EXPO_PUBLIC_API_URL }}"
+          fi
+
+      - name: Build web (expo export)
+        run: npx expo export --platform web
+        env:
+          CI: 'true'
+          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+          EXPO_PUBLIC_FIREBASE_API_KEY: ${{ secrets.EXPO_PUBLIC_FIREBASE_API_KEY }}
+          EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          EXPO_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.EXPO_PUBLIC_FIREBASE_PROJECT_ID }}
+          EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          EXPO_PUBLIC_FIREBASE_APP_ID: ${{ secrets.EXPO_PUBLIC_FIREBASE_APP_ID }}
+
+      - name: Validar saída do build
+        run: test -f dist/index.html && du -sh dist
+
+      - name: Guardar build
+        uses: actions/upload-artifact@v4
+        with:
+          name: front-dist
+          path: dist
+          retention-days: 7
+
+  deploy:
+    name: Deploy no Azure Web App
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.webapp-url }}
+    steps:
+      - name: Baixar build
+        uses: actions/download-artifact@v4
+        with:
+          name: front-dist
+          path: dist
+
+      - name: Deploy
+        id: deploy
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.FRONT_APP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_FRONT }}
+          package: dist
