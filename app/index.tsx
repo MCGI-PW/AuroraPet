@@ -15,8 +15,6 @@ export default function LandingPage() {
   const { colors } = useTheme();
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
-import React, { useEffect } from 'react';
-import { useRouter } from 'expo-router';
 
   const handleNavigateSection = (sectionId: string) => {
     // Para web e mobile, rola ou foca suavemente
@@ -59,13 +57,6 @@ import { useRouter } from 'expo-router';
       />
     </SafeAreaView>
   );
-export default function RootRedirect() {
-  const router = useRouter();
-  // Immediately redirect to login page
-  useEffect(() => {
-    router.replace('/(auth)/login');
-  }, []);
-  return null;
 }
 
 const styles = StyleSheet.create({

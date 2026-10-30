@@ -48,14 +48,6 @@ export default function ClinicLayout() {
     navItems.push({ label: 'Registrar Clínica', href: '/(clinic)/register-clinic', icon: Users });
   }
 
-    { label: 'Planos & Cotas', href: '/(clinic)/subscription', icon: Zap },
-    { label: 'Solicitações', href: '/(clinic)/requests', icon: MessageSquareText },
-    { label: 'Portal do Vet', href: '/(clinic)/vet-portal', icon: Stethoscope },
-    { label: 'Corpo Clínico', href: '/(clinic)/vets', icon: Users },
-    { label: 'Agenda & Fila', href: '/(clinic)/agenda', icon: CalendarDays },
-    { label: 'Configurações', href: '/(clinic)/settings', icon: Settings },
-  ];
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* HEADER SUPERIOR CLÍNICO */}
