@@ -1,4 +1,4 @@
-const { createRemoteJWKSet, jwtVerify } = require('jose');
+const { createRemoteJWKSet, decodeJwt, jwtVerify } = require('jose');
 const { firebaseProjectId } = require('../config');
 const { unauthorized, forbidden } = require('../errors');
 const { findUser } = require('../services/users');
@@ -12,11 +12,26 @@ const FIREBASE_JWKS = createRemoteJWKSet(
   new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com')
 );
 
+/**
+ * Desenvolvimento/testes: com FIREBASE_AUTH_EMULATOR_HOST definido, aceita
+ * os tokens do Firebase Auth Emulator (que não são assinados), como faz o
+ * firebase-admin. Nunca é ativado em produção.
+ */
+const usingAuthEmulator = Boolean(process.env.FIREBASE_AUTH_EMULATOR_HOST);
+if (usingAuthEmulator) {
+  console.warn('[AuroraPet API] Aceitando tokens do Firebase Auth Emulator (somente desenvolvimento).');
+}
+
 async function verifyFirebaseToken(token) {
-  const { payload } = await jwtVerify(token, FIREBASE_JWKS, {
-    issuer: `https://securetoken.google.com/${firebaseProjectId}`,
-    audience: firebaseProjectId,
-  });
+  const payload = usingAuthEmulator
+    ? decodeJwt(token)
+    : (
+        await jwtVerify(token, FIREBASE_JWKS, {
+          issuer: `https://securetoken.google.com/${firebaseProjectId}`,
+          audience: firebaseProjectId,
+        })
+      ).payload;
+  if (!payload.sub) throw new Error('Token sem usuário.');
   return {
     uid: payload.sub,
     email: payload.email || '',
