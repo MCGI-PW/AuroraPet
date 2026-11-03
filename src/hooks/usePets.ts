@@ -1,57 +1,49 @@
-﻿import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { petService } from '../services/petService';
 import { CreatePetInput, UpdatePetInput } from '../types/pet';
+import { queryKeys } from './queryKeys';
 
-export const usePets = (userId?: string) => {
-  return useQuery({
-    queryKey: ['pets', userId],
-    queryFn: () => petService.getPets(userId),
-    staleTime: 1000 * 60 * 2, // 2 minutos
+export const usePets = () =>
+  useQuery({
+    queryKey: queryKeys.pets.all,
+    queryFn: petService.list,
   });
-};
 
-export const usePet = (id?: string) => {
-  return useQuery({
-    queryKey: ['pets', 'detail', id],
-    queryFn: () => {
-      if (!id) throw new Error('ID do pet não fornecido');
-      return petService.getPetById(id);
-    },
+export const usePet = (id?: string) =>
+  useQuery({
+    queryKey: queryKeys.pets.detail(id),
+    queryFn: () => petService.getById(id as string),
     enabled: Boolean(id),
   });
-};
 
-export const useAddPet = () => {
+export const useCreatePet = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (input: CreatePetInput) => petService.createPet(input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pets'] });
-    },
+    mutationFn: (input: CreatePetInput) => petService.create(input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.pets.all }),
   });
 };
 
 export const useUpdatePet = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdatePetInput }) =>
-      petService.updatePet(id, data),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['pets'] });
-      queryClient.invalidateQueries({ queryKey: ['pets', 'detail', variables.id] });
+    mutationFn: ({ id, data }: { id: string; data: UpdatePetInput }) => petService.update(id, data),
+    onSuccess: (pet) => {
+      queryClient.setQueryData(queryKeys.pets.detail(pet.id), pet);
+      queryClient.invalidateQueries({ queryKey: queryKeys.pets.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.appointments.all });
     },
   });
 };
 
 export const useDeletePet = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (id: string) => petService.deletePet(id),
+    mutationFn: (id: string) => petService.remove(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pets'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.pets.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.appointments.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.authorizations.all });
     },
   });
 };

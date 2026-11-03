@@ -59,6 +59,17 @@ router.get('/specialists/:id', (req, res) => {
   res.json(specialist);
 });
 
+/** Horários já reservados do veterinário em uma data (sem dados pessoais). */
+router.get('/specialists/:id/busy-slots', requireAuth, (req, res) => {
+  const { date } = req.query;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) throw badRequest('Informe a data no formato AAAA-MM-DD.');
+  const times = db
+    .collection('appointments')
+    .filter((a) => a.specialistId === req.params.id && a.date === date && a.status === 'scheduled')
+    .map((a) => a.time);
+  res.json(times);
+});
+
 router.post('/specialists', requireAuth, requireRole('clinic_admin'), (req, res) => {
   const data = pick(req.body || {}, SPECIALIST_FIELDS);
   if (!data.name || !data.crmv || !data.specialty) {

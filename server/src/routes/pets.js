@@ -20,21 +20,37 @@ function normalizeWeight(weight) {
   return `${number} kg`;
 }
 
+/**
+ * LGPD: o veterinário só lê o prontuário de pets que autorizaram o acesso
+ * a ele (autorização ativa e no prazo) ou que têm consulta com ele.
+ */
+function vetCanRead(user, petId) {
+  const today = new Date().toISOString().split('T')[0];
+  const authorized = db
+    .collection('authorizations')
+    .some((a) => a.petId === petId && a.veterinarianId === user.specialistId && a.status === 'ACTIVE' && (!a.expiresAt || a.expiresAt >= today));
+  const hasAppointment = db
+    .collection('appointments')
+    .some((a) => a.petId === petId && a.specialistId === user.specialistId);
+  return authorized || hasAppointment;
+}
+
+function canRead(user, pet) {
+  if (pet.userId === user.uid || user.role === 'clinic_admin') return true;
+  return user.role === 'veterinarian' && vetCanRead(user, pet.id);
+}
+
 function findOwnedPet(req) {
   const pet = db.collection('pets').find((p) => p.id === req.params.id);
   if (!pet) throw notFound('Pet não encontrado.');
-  const isStaff = STAFF_ROLES.includes(req.user.role);
-  if (pet.userId !== req.user.uid && !(isStaff && req.method === 'GET')) {
-    throw forbidden('Este pet pertence a outro tutor.');
-  }
+  const allowed = req.method === 'GET' ? canRead(req.user, pet) : pet.userId === req.user.uid;
+  if (!allowed) throw forbidden('Você não tem autorização para acessar este prontuário.');
   return pet;
 }
 
-// Tutor vê os próprios pets; equipe da clínica vê os pacientes.
+// Tutor: os próprios pets. Clínica: todos os pacientes. Veterinário: os autorizados.
 router.get('/', (req, res) => {
-  const pets = db.collection('pets');
-  const isStaff = STAFF_ROLES.includes(req.user.role);
-  res.json(isStaff ? pets : pets.filter((p) => p.userId === req.user.uid));
+  res.json(db.collection('pets').filter((p) => canRead(req.user, p)));
 });
 
 router.get('/:id', (req, res) => {

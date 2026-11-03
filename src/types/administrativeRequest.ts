@@ -3,6 +3,7 @@ export type RequestStatus = 'OPEN' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED' | 'FI
 
 export interface AdministrativeRequest {
   id: string;
+  veterinarianUid: string;
   veterinarianId: string;
   veterinarianName: string;
   crmv: string;
@@ -19,11 +20,6 @@ export interface AdministrativeRequest {
 }
 
 export interface CreateAdministrativeRequestInput {
-  veterinarianId: string;
-  veterinarianName: string;
-  crmv: string;
-  clinicId: string;
-  clinicName: string;
   title: string;
   description: string;
   priority: RequestPriority;

@@ -1,4 +1,4 @@
-﻿export type PetSpecies = 'dog' | 'cat' | 'bird' | 'other';
+export type PetSpecies = 'dog' | 'cat' | 'bird' | 'other';
 
 export interface Pet {
   id: string;
@@ -14,6 +14,6 @@ export interface Pet {
   updatedAt?: string;
 }
 
-export type CreatePetInput = Omit<Pet, 'id' | 'createdAt' | 'updatedAt'>;
+export type CreatePetInput = Omit<Pet, 'id' | 'userId' | 'createdAt' | 'updatedAt'>;
 
 export type UpdatePetInput = Partial<CreatePetInput>;

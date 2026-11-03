@@ -1,99 +1,33 @@
-import { apiFetch } from './api';
+import { apiDelete, apiGet, apiPost, apiPut } from './api';
 import {
-  Specialist,
+  ClinicProfile,
   ClinicService,
   CreateSpecialistInput,
+  Specialist,
   UpdateSpecialistInput,
-  ClinicProfile,
 } from '../types/specialist';
-import { Appointment, ConsultationReport } from '../types/appointment';
+import { ClinicSubscription, Plan } from '../types/plan';
 
+/** Dados da clínica, corpo clínico, serviços e planos na API. */
 export const clinicService = {
-  /**
-   * Consulta os dados cadastrais e operacionais da clínica
-   */
-  async getClinicProfile(): Promise<ClinicProfile> {
-    return apiFetch<ClinicProfile>('/clinic');
-  },
+  getProfile: () => apiGet<ClinicProfile>('/clinic'),
+  updateProfile: (input: Partial<ClinicProfile>) => apiPut<ClinicProfile>('/clinic', input),
 
-  /**
-   * Atualiza os dados ou modo de operação da clínica
-   */
-  async updateClinicProfile(input: Partial<ClinicProfile>): Promise<ClinicProfile> {
-    return apiFetch<ClinicProfile>('/clinic', {
-      method: 'PUT',
-      body: JSON.stringify(input),
-    });
-  },
+  listSpecialists: () => apiGet<Specialist[]>('/specialists'),
+  getSpecialist: (id: string) => apiGet<Specialist>(`/specialists/${encodeURIComponent(id)}`),
+  createSpecialist: (input: CreateSpecialistInput) => apiPost<Specialist>('/specialists', input),
+  updateSpecialist: (id: string, input: UpdateSpecialistInput) =>
+    apiPut<Specialist>(`/specialists/${encodeURIComponent(id)}`, input),
+  removeSpecialist: (id: string) =>
+    apiDelete<{ message: string; id: string }>(`/specialists/${encodeURIComponent(id)}`),
 
-  /**
-   * Consulta a lista de especialistas da clínica via HTTP GET
-   */
-  async getSpecialists(): Promise<Specialist[]> {
-    return apiFetch<Specialist[]>('/specialists');
-  },
+  /** Horários já reservados do veterinário na data (para montar a agenda livre). */
+  busySlots: (specialistId: string, date: string) =>
+    apiGet<string[]>(`/specialists/${encodeURIComponent(specialistId)}/busy-slots?date=${date}`),
 
-  /**
-   * Consulta um especialista específico pelo ID
-   */
-  async getSpecialistById(id: string): Promise<Specialist> {
-    return apiFetch<Specialist>(`/specialists/${encodeURIComponent(id)}`);
-  },
+  listServices: () => apiGet<ClinicService[]>('/services'),
 
-  /**
-   * Cadastra um novo veterinário / especialista na clínica
-   */
-  async createSpecialist(input: CreateSpecialistInput): Promise<Specialist> {
-    return apiFetch<Specialist>('/specialists', {
-      method: 'POST',
-      body: JSON.stringify(input),
-    });
-  },
-
-  /**
-   * Atualiza dados de um veterinário existente
-   */
-  async updateSpecialist(id: string, input: UpdateSpecialistInput): Promise<Specialist> {
-    return apiFetch<Specialist>(`/specialists/${encodeURIComponent(id)}`, {
-      method: 'PUT',
-      body: JSON.stringify(input),
-    });
-  },
-
-  /**
-   * Remove um veterinário da equipe da clínica
-   */
-  async deleteSpecialist(id: string): Promise<{ message: string; id: string }> {
-    return apiFetch<{ message: string; id: string }>(`/specialists/${encodeURIComponent(id)}`, {
-      method: 'DELETE',
-    });
-  },
-
-  /**
-   * Consulta a lista de serviços oferecidos pela clínica via HTTP GET
-   */
-  async getServices(): Promise<ClinicService[]> {
-    return apiFetch<ClinicService[]>('/services');
-  },
-
-  /**
-   * Emite o laudo/relatório clínico e conclui o atendimento da consulta
-   */
-  async submitConsultationReport(
-    appointmentId: string,
-    reportData: Partial<ConsultationReport>
-  ): Promise<Appointment> {
-    return apiFetch<Appointment>(`/appointments/${encodeURIComponent(appointmentId)}/report`, {
-      method: 'POST',
-      body: JSON.stringify(reportData),
-    });
-  },
-
-  /**
-   * Consulta o relatório clínico de uma consulta concluída
-   */
-  async getConsultationReport(appointmentId: string): Promise<ConsultationReport> {
-    return apiFetch<ConsultationReport>(`/appointments/${encodeURIComponent(appointmentId)}/report`);
-  },
+  listPlans: () => apiGet<Plan[]>('/plans'),
+  getSubscription: () => apiGet<ClinicSubscription>('/clinic/subscription'),
+  changePlan: (planId: string) => apiPut<ClinicSubscription>('/clinic/subscription', { planId }),
 };
-

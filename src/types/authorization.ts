@@ -5,6 +5,7 @@ export interface PetAccessAuthorization {
   petId: string;
   petName: string;
   tutorId: string;
+  tutorName?: string;
   veterinarianId: string;
   veterinarianName: string;
   crmv: string;
@@ -17,14 +18,11 @@ export interface PetAccessAuthorization {
   revokedAt?: string;
 }
 
+export type AuthorizationDuration = 30 | 90 | 365 | null;
+
 export interface GrantAuthorizationInput {
   petId: string;
-  petName: string;
-  tutorId: string;
   veterinarianId: string;
-  veterinarianName: string;
-  crmv: string;
-  clinicId?: string;
-  clinicName?: string;
-  expiresAt?: string;
+  /** Prazo em dias; null = sem data de expiração (até ser revogado). */
+  durationDays: AuthorizationDuration;
 }

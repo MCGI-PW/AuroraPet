@@ -1,146 +1,106 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { clinicService } from '../services/clinicService';
-import { planService } from '../services/planService';
-import { requestService } from '../services/requestService';
-import {
-  CreateSpecialistInput,
-  UpdateSpecialistInput,
-  ClinicProfile,
-} from '../types/specialist';
-import { ConsultationReport } from '../types/appointment';
-import { RequestStatus } from '../types/administrativeRequest';
+import { ClinicProfile, CreateSpecialistInput, UpdateSpecialistInput } from '../types/specialist';
+import { queryKeys } from './queryKeys';
 
-export function useClinicProfile() {
-  return useQuery({
-    queryKey: ['clinic-profile'],
-    queryFn: () => clinicService.getClinicProfile(),
+const CATALOG_STALE_TIME = 1000 * 60 * 5;
+
+// ---------- Dados da clínica ----------
+export const useClinicProfile = () =>
+  useQuery({
+    queryKey: queryKeys.clinic.profile,
+    queryFn: clinicService.getProfile,
+    staleTime: CATALOG_STALE_TIME,
   });
-}
 
-export function useUpdateClinicProfile() {
+export const useUpdateClinicProfile = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: Partial<ClinicProfile>) => clinicService.updateClinicProfile(input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clinic-profile'] });
-    },
+    mutationFn: (input: Partial<ClinicProfile>) => clinicService.updateProfile(input),
+    onSuccess: (clinic) => queryClient.setQueryData(queryKeys.clinic.profile, clinic),
   });
-}
+};
 
-export function useSpecialists() {
-  return useQuery({
-    queryKey: ['specialists'],
-    queryFn: () => clinicService.getSpecialists(),
+// ---------- Corpo clínico ----------
+export const useSpecialists = () =>
+  useQuery({
+    queryKey: queryKeys.clinic.specialists,
+    queryFn: clinicService.listSpecialists,
+    staleTime: CATALOG_STALE_TIME,
   });
-}
 
-export const useClinicSpecialists = useSpecialists;
+export const useSpecialist = (id?: string) =>
+  useQuery({
+    queryKey: queryKeys.clinic.specialist(id),
+    queryFn: () => clinicService.getSpecialist(id as string),
+    enabled: Boolean(id),
+  });
 
-export function useCreateSpecialist() {
+function useInvalidateTeam() {
   const queryClient = useQueryClient();
+  return () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.clinic.specialists });
+    queryClient.invalidateQueries({ queryKey: queryKeys.clinic.subscription });
+  };
+}
+
+export const useCreateSpecialist = () => {
+  const invalidate = useInvalidateTeam();
   return useMutation({
     mutationFn: (input: CreateSpecialistInput) => clinicService.createSpecialist(input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['specialists'] });
-      queryClient.invalidateQueries({ queryKey: ['clinic-subscription'] });
-    },
+    onSuccess: invalidate,
   });
-}
+};
 
-export function useUpdateSpecialist() {
+export const useUpdateSpecialist = () => {
+  const invalidate = useInvalidateTeam();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateSpecialistInput }) => clinicService.updateSpecialist(id, data),
+    onSuccess: invalidate,
+  });
+};
+
+export const useDeleteSpecialist = () => {
+  const invalidate = useInvalidateTeam();
+  return useMutation({
+    mutationFn: (id: string) => clinicService.removeSpecialist(id),
+    onSuccess: invalidate,
+  });
+};
+
+/** Horários ocupados do veterinário na data escolhida. */
+export const useBusySlots = (specialistId?: string, date?: string) =>
+  useQuery({
+    queryKey: queryKeys.clinic.busySlots(specialistId, date),
+    queryFn: () => clinicService.busySlots(specialistId as string, date as string),
+    enabled: Boolean(specialistId && date),
+  });
+
+// ---------- Serviços, planos e assinatura ----------
+export const useClinicServices = () =>
+  useQuery({
+    queryKey: queryKeys.clinic.services,
+    queryFn: clinicService.listServices,
+    staleTime: CATALOG_STALE_TIME,
+  });
+
+export const usePlans = () =>
+  useQuery({
+    queryKey: queryKeys.clinic.plans,
+    queryFn: clinicService.listPlans,
+    staleTime: CATALOG_STALE_TIME,
+  });
+
+export const useClinicSubscription = () =>
+  useQuery({
+    queryKey: queryKeys.clinic.subscription,
+    queryFn: clinicService.getSubscription,
+  });
+
+export const useChangePlan = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateSpecialistInput }) =>
-      clinicService.updateSpecialist(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['specialists'] });
-    },
+    mutationFn: (planId: string) => clinicService.changePlan(planId),
+    onSuccess: (subscription) => queryClient.setQueryData(queryKeys.clinic.subscription, subscription),
   });
-}
-
-export function useDeleteSpecialist() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => clinicService.deleteSpecialist(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['specialists'] });
-      queryClient.invalidateQueries({ queryKey: ['clinic-subscription'] });
-    },
-  });
-}
-
-export function useSubmitConsultationReport() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      appointmentId,
-      report,
-      reportData,
-    }: {
-      appointmentId: string;
-      report?: Partial<ConsultationReport>;
-      reportData?: Partial<ConsultationReport>;
-    }) =>
-      clinicService.submitConsultationReport(
-        appointmentId,
-        (report || reportData || {}) as Partial<ConsultationReport>
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
-    },
-  });
-}
-
-// Planos & Assinatura da Clínica (PLANO & ASSINATURA_CLINICA)
-export function usePlans() {
-  return useQuery({
-    queryKey: ['plans'],
-    queryFn: () => planService.getPlans(),
-  });
-}
-
-export function useClinicSubscription(clinicId?: string) {
-  return useQuery({
-    queryKey: ['clinic-subscription', clinicId],
-    queryFn: () => planService.getClinicSubscription(clinicId),
-  });
-}
-
-export function useUpgradePlan() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (planId: string) => planService.upgradePlan(planId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clinic-subscription'] });
-    },
-  });
-}
-
-// Solicitações Administrativas (SOLICITACAO_ADMINISTRATIVA)
-export function useClinicRequests(clinicId?: string) {
-  return useQuery({
-    queryKey: ['clinic-requests', clinicId],
-    queryFn: () => requestService.getClinicRequests(clinicId),
-  });
-}
-
-export function useUpdateRequestStatus() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      requestId,
-      status,
-      feedback,
-      adminName,
-    }: {
-      requestId: string;
-      status: RequestStatus;
-      feedback?: string;
-      adminName?: string;
-    }) => requestService.updateRequestStatus(requestId, status, feedback, adminName),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clinic-requests'] });
-      queryClient.invalidateQueries({ queryKey: ['veterinarian-requests'] });
-    },
-  });
-}
+};
