@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { UserProfile } from '../types/auth';
 import Constants from 'expo-constants';
 
 export class ApiError extends Error {

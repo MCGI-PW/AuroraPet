@@ -41,7 +41,7 @@ export default function LandingPage() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Hero onOpenBooking={() => setIsBookingModalOpen(true)} />
+        <Hero onPrimaryAction={() => setIsBookingModalOpen(true)} primaryLabel="Agendar uma consulta" />
         <Benefits />
         <Services />
         <Clinic />
