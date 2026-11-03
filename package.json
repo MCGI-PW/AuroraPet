@@ -1,5 +1,5 @@
 {
-  "name": "clyvo-vet",
+  "name": "aurorapet",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
@@ -32,8 +32,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "server": "node server/server.js",
-    "dev": "concurrently -n \"API,EXPO\" -c \"cyan,green\" \"node server/server.js\" \"expo start --web\""
+    "server:install": "npm --prefix server install",
+    "server": "npm --prefix server start",
+    "typecheck": "tsc --noEmit"
   },
   "private": true
 }

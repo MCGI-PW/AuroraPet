@@ -40,3 +40,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# API: banco local gerado a partir de server/data/seed.json
+server/data/db.json
+server/data/db.json.tmp

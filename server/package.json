@@ -1,0 +1,19 @@
+{
+  "name": "aurorapet-api",
+  "version": "1.0.0",
+  "description": "API REST do AuroraPet (Node.js/Express) com autenticação via Firebase ID Token",
+  "main": "src/index.js",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "jose": "^5.9.6"
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "clinic": {
+    "id": "clinic-clyvo-matriz",
+    "name": "Clyvo Centro Médico Veterinário",
+    "tradeName": "Clyvo Clínica & Hospital Veterinário 24h",
+    "cnpj": "12.345.678/0001-90",
+    "mode": "multi_vet",
+    "address": "Av. Brigadeiro Faria Lima, 3477 - Itaim Bibi, São Paulo - SP",
+    "phone": "(11) 3088-4200",
+    "emergencyPhone": "(11) 99876-5432",
+    "openingHours": "Atendimento 24 horas todos os dias",
+    "description": "Centro de excelência médica veterinária com equipe multidisciplinar e internação 24h."
+  },
+  "plans": [
+    {
+      "id": "plan-basic",
+      "code": "basic",
+      "name": "Clyvo Start",
+      "description": "Ideal para consultórios individuais e pequenos atendimentos veterinários.",
+      "monthlyPrice": 149,
+      "maxVeterinarians": 2,
+      "maxAdmins": 1,
+      "maxPatients": 500,
+      "features": [
+        "Até 2 Veterinários cadastrados",
+        "1 Administrador de Clínica",
+        "Prontuário Digital Básico",
+        "Agenda de Consultas",
+        "Suporte via E-mail"
+      ]
+    },
+    {
+      "id": "plan-pro",
+      "code": "pro",
+      "name": "Clyvo Pro",
+      "description": "Para clínicas em expansão com equipe multidisciplinar e alta demanda.",
+      "monthlyPrice": 389,
+      "maxVeterinarians": 10,
+      "maxAdmins": 3,
+      "maxPatients": 5000,
+      "recommended": true,
+      "features": [
+        "Até 10 Veterinários cadastrados",
+        "3 Administradores de Clínica",
+        "Até 5.000 Pacientes/Tutores",
+        "Prontuários e Laudos Completos",
+        "Controle de Autorizações RBAC",
+        "Canal de Solicitações Administrativas",
+        "Suporte Prioritário WhatsApp 24/7"
+      ]
+    },
+    {
+      "id": "plan-enterprise",
+      "code": "enterprise",
+      "name": "Clyvo Hospital 24h",
+      "description": "Estrutura completa para hospitais veterinários e redes com múltiplas filiais.",
+      "monthlyPrice": 890,
+      "maxVeterinarians": 50,
+      "maxAdmins": 10,
+      "maxPatients": 50000,
+      "features": [
+        "Veterinários Ilimitados (até 50)",
+        "10 Administradores de Clínica",
+        "Gestão Multi-Unidades",
+        "Auditoria de Segurança Avançada",
+        "API de Integração com Laboratórios",
+        "Gerente de Contas Dedicado"
+      ]
+    }
+  ],
+  "subscription": {
+    "id": "sub-clyvo-matriz-01",
+    "clinicId": "clinic-clyvo-matriz",
+    "clinicName": "Clyvo Centro Médico Veterinário 24h",
+    "planId": "plan-pro",
+    "planName": "Clyvo Pro",
+    "planCode": "pro",
+    "status": "ACTIVE",
+    "startDate": "2026-01-01",
+    "renewalDate": "2027-01-01"
+  },
+  "specialists": [
+    {
+      "id": "spec-1",
+      "name": "Dra. Beatriz Santos",
+      "specialty": "Clínica Geral & Cirurgia",
+      "crmv": "CRMV-SP 42.109",
+      "bio": "Especialista em medicina preventiva e cirurgia de pequenos animais com mais de 8 anos de experiência.",
+      "photoUrl": "https://images.unsplash.com/photo-1612531385446-f7e6d131e1d0?auto=format&fit=crop&w=700&q=85",
+      "availableDays": [
+        "Segunda",
+        "Quarta",
+        "Sexta"
+      ],
+      "availableHours": [
+        "09:00",
+        "10:00",
+        "11:00",
+        "14:00",
+        "15:00",
+        "16:00"
+      ],
+      "email": "",
+      "phone": "",
+      "active": true
+    },
+    {
+      "id": "spec-2",
+      "name": "Dr. Leonardo Albuquerque",
+      "specialty": "Cardiologia & Diagnóstico",
+      "crmv": "CRMV-SP 38.541",
+      "bio": "Mestre em clínica médica veterinária com foco em ultrassonografia e rotinas avançadas.",
+      "photoUrl": "https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?auto=format&fit=crop&w=700&q=85",
+      "availableDays": [
+        "Terça",
+        "Quinta",
+        "Sábado"
+      ],
+      "availableHours": [
+        "08:30",
+        "09:30",
+        "10:30",
+        "13:30",
+        "14:30",
+        "15:30"
+      ],
+      "email": "",
+      "phone": "",
+      "active": true
+    },
+    {
+      "id": "spec-3",
+      "name": "Dra. Helena Martins",
+      "specialty": "Dermatologia & Imunização",
+      "crmv": "CRMV-SP 51.902",
+      "bio": "Referência em dermatologia felina e canina e tratamentos integrativos para longevidade e conforto.",
+      "photoUrl": "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?auto=format&fit=crop&w=700&q=85",
+      "availableDays": [
+        "Segunda",
+        "Terça",
+        "Quinta",
+        "Sexta"
+      ],
+      "availableHours": [
+        "10:00",
+        "11:00",
+        "14:00",
+        "16:00",
+        "17:00"
+      ],
+      "email": "",
+      "phone": "",
+      "active": true
+    }
+  ],
+  "services": [
+    {
+      "id": "serv-1",
+      "name": "Consulta Clínica Geral",
+      "description": "Avaliação clínica completa do animal, acompanhamento preventivo e orientação detalhada ao tutor.",
+      "duration": "45 min",
+      "price": "R$ 160,00",
+      "category": "Consultas"
+    },
+    {
+      "id": "serv-2",
+      "name": "Vacinação & Imunização",
+      "description": "Aplicação de vacinas essenciais (V10, V8, Antirrábica, Giárdia) com emissão de carteirinha digital.",
+      "duration": "30 min",
+      "price": "R$ 110,00",
+      "category": "Prevenção"
+    },
+    {
+      "id": "serv-3",
+      "name": "Exames Laboratoriais & Imagem",
+      "description": "Hemograma, ultrassonografia abdominal e raio-x digital para diagnósticos rápidos e precisos.",
+      "duration": "60 min",
+      "price": "R$ 220,00",
+      "category": "Diagnóstico"
+    },
+    {
+      "id": "serv-4",
+      "name": "Atendimento Dermatológico",
+      "description": "Investigação de alergias, dermatites, problemas de pele e controle de ectoparasitas.",
+      "duration": "50 min",
+      "price": "R$ 190,00",
+      "category": "Especialidades"
+    }
+  ],
+  "users": [],
+  "pets": [],
+  "appointments": [],
+  "authorizations": [],
+  "requests": [],
+  "notifications": []
+}
