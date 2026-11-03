@@ -1,87 +1,44 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Info } from 'lucide-react-native';
 import { HeaderBrand } from '../common/HeaderBrand';
 import { useTheme } from '../../contexts/ThemeContext';
+import { appConfig } from '../../config/appConfig';
 
-export const Footer: React.FC = () => {
-  const { colors, isDark } = useTheme();
+interface FooterProps {
+  onOpenAbout: () => void;
+}
+
+export const Footer: React.FC<FooterProps> = ({ onOpenAbout }) => {
+  const { colors } = useTheme();
 
   return (
-    <View
-      style={[
-        styles.footer,
-        {
-          backgroundColor: isDark ? '#090d0c' : '#f8faf9',
-          borderTopColor: colors.border,
-        },
-      ]}
-    >
-      <View style={styles.container}>
-        <View style={styles.topRow}>
-          <View style={styles.brandBox}>
-            <HeaderBrand size="sm" />
-            <Text style={[styles.description, { color: colors.textSecondary }]}>
-              Plataforma dEquipe médica integrada à plataforma, utilizando dados reaisterinários, prontuário
-              clínico e acompanhamento de pets.
-            </Text>
-          </View>
-        </View>
+    <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+      <HeaderBrand size="sm" />
+      <Text style={[styles.description, { color: colors.textSecondary }]}>
+        Plataforma que conecta tutores, médicos veterinários e a clínica: prontuário digital, agenda de
+        consultas, laudos e controle de acesso aos dados do pet.
+      </Text>
 
-        <View style={[styles.bottomRow, { borderTopColor: colors.border }]}>
-          <Text style={[styles.copyright, { color: colors.textMuted }]}>
-            © 2026 Your Clinic. All rights reserved.
-          </Text>
-          <Text style={[styles.sprintInfo, { color: colors.textMuted }]}>
-            Engenharia de Software • Sprint 3 Delivery
-          </Text>
-        </View>
+      <TouchableOpacity onPress={onOpenAbout} style={styles.aboutLink} accessibilityRole="link">
+        <Info size={14} color={colors.accent} />
+        <Text style={[styles.aboutText, { color: colors.accent }]}>Sobre o App</Text>
+      </TouchableOpacity>
+
+      <View style={[styles.bottomRow, { borderTopColor: colors.border }]}>
+        <Text style={[styles.meta, { color: colors.textMuted }]}>
+          {appConfig.appName} v{appConfig.version} • FIAP — Mobile Application Development
+        </Text>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  footer: {
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    width: '100%',
-  },
-  container: {
-    width: '100%',
-    maxWidth: 1180,
-    marginHorizontal: 'auto',
-  },
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    flexWrap: 'wrap',
-    gap: 30,
-    paddingBottom: 25,
-  },
-  brandBox: {
-    maxWidth: 380,
-  },
-  description: {
-    marginTop: 12,
-    fontSize: 13,
-    lineHeight: 20,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 12,
-    paddingTop: 20,
-    borderTopWidth: 1,
-  },
-  copyright: {
-    fontSize: 12,
-  },
-  sprintInfo: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
+  footer: { paddingVertical: 32, paddingHorizontal: 20, borderTopWidth: 1, gap: 12 },
+  description: { fontSize: 13, lineHeight: 20 },
+  aboutLink: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingVertical: 4 },
+  aboutText: { fontSize: 13, fontWeight: '700' },
+  bottomRow: { borderTopWidth: 1, paddingTop: 14 },
+  meta: { fontSize: 11 },
 });

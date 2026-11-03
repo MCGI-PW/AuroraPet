@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Stethoscope, HeartPulse, CalendarDays } from 'lucide-react-native';
 import { useTheme } from '../../contexts/ThemeContext';

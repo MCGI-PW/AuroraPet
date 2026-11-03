@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Sparkles, ArrowRight, Stethoscope, ShieldCheck, HeartPulse } from 'lucide-react-native';
 import { useTheme } from '../../contexts/ThemeContext';

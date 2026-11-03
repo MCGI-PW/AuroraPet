@@ -1,4 +1,5 @@
-﻿import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { Appearance } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type ThemeMode = 'light' | 'dark';
@@ -72,10 +73,11 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_STORAGE_KEY = '@clyvo_theme_preference';
+const THEME_STORAGE_KEY = '@aurorapet/theme-preference';
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<ThemeMode>('light');
+  // Começa pelo tema do sistema; a escolha manual do usuário é persistida.
+  const [theme, setTheme] = useState<ThemeMode>(Appearance.getColorScheme() === 'dark' ? 'dark' : 'light');
 
   useEffect(() => {
     async function loadTheme() {

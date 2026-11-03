@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { PawPrint, Stethoscope, HeartPulse, ShieldCheck } from 'lucide-react-native';
-import { useClinicServices } from '../../hooks/useSpecialists';
+import { useClinicServices } from '../../hooks/useClinic';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export const Services: React.FC = () => {
@@ -73,13 +73,13 @@ export const Services: React.FC = () => {
             >
               <View style={styles.cardHeader}>
                 <Text style={[styles.serviceCode, { color: colors.textMuted }]}>
-                  {service.code}
+                  {service.category ?? service.code}
                 </Text>
                 {getIcon(service.iconName)}
               </View>
 
               <Text style={[styles.serviceTitle, { color: colors.text }]}>
-                {service.title}
+                {service.name ?? service.title}
               </Text>
 
               <Text style={[styles.serviceDescription, { color: colors.textSecondary }]}>

@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { useSpecialists } from '../../hooks/useSpecialists';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSpecialists } from '../../hooks/useClinic';
 import { useTheme } from '../../contexts/ThemeContext';
+import { Avatar } from '../common/Avatar';
 import { Calendar } from 'lucide-react-native';
 
 interface SpecialistsProps {
@@ -52,11 +53,7 @@ export const Specialists: React.FC<SpecialistsProps> = ({ onOpenBooking }) => {
               ]}
             >
               <View style={styles.imageContainer}>
-                <Image
-                  source={{ uri: specialist.photoUrl }}
-                  style={styles.specialistImage}
-                  resizeMode="cover"
-                />
+                <Avatar name={specialist.name} photoUrl={specialist.photoUrl} style={styles.specialistImage} />
               </View>
 
               <Text style={[styles.specialistName, { color: colors.text }]}>

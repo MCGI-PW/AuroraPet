@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { PawPrint } from 'lucide-react-native';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useClinic } from '../../contexts/ClinicContext';
+import { useClinicProfile } from '../../hooks/useClinic';
 
 interface HeaderBrandProps {
   size?: 'sm' | 'md' | 'lg';
@@ -11,7 +11,7 @@ interface HeaderBrandProps {
 
 export const HeaderBrand: React.FC<HeaderBrandProps> = ({ size = 'md', showSubtitle = true }) => {
   const { colors, isDark } = useTheme();
-  const { clinic } = useClinic();
+  const { data: clinic } = useClinicProfile();
 
   const iconSize = size === 'sm' ? 36 : size === 'lg' ? 48 : 40;
   const lucideIconSize = size === 'sm' ? 18 : size === 'lg' ? 24 : 20;
@@ -48,7 +48,7 @@ export const HeaderBrand: React.FC<HeaderBrandProps> = ({ size = 'md', showSubti
               },
             ]}
           >
-            {clinic?.name ?? 'Your Clinic'}
+            AuroraPet
           </Text>
           <View
             style={[
@@ -64,7 +64,7 @@ export const HeaderBrand: React.FC<HeaderBrandProps> = ({ size = 'md', showSubti
 
         {showSubtitle && (
           <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-            Veterinary Care
+            {clinic?.name ?? 'Cuidado veterinário'}
           </Text>
         )}
       </View>
