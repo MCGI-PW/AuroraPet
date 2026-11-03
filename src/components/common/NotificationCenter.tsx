@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,14 @@ import {
   StyleSheet,
   Pressable,
 } from 'react-native';
+import { Href, useRouter } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useAuth } from '../../contexts/AuthContext';
-import { notificationService } from '../../services/notificationService';
+import { useAuth } from '../../hooks/useAuth';
+import {
+  useMarkAllNotificationsRead,
+  useMarkNotificationRead,
+  useNotifications,
+} from '../../hooks/useNotifications';
 import { AppNotification } from '../../types/notification';
 import {
   Bell,
@@ -22,38 +27,30 @@ import {
   Info,
 } from 'lucide-react-native';
 
-export const NotificationModal: React.FC = () => {
+/**
+ * Sino de notificações do cabeçalho: lista a caixa de entrada do usuário
+ * (sincronizada com a API) e abre a tela relacionada ao tocar no aviso.
+ */
+export const NotificationCenter: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const router = useRouter();
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
-
-  const loadNotifications = async () => {
-    try {
-      const list = await notificationService.getNotifications(user?.uid);
-      setNotifications(list);
-    } catch (e) {
-      console.error('Erro ao carregar notificações:', e);
-    }
-  };
-
-  useEffect(() => {
-    loadNotifications();
-  }, [user?.uid, isOpen]);
+  const { data: notifications = [] } = useNotifications(user?.uid);
+  const markAsRead = useMarkNotificationRead();
+  const markAllAsRead = useMarkAllNotificationsRead();
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const handleMarkAsRead = async (id: string) => {
-    await notificationService.markAsRead(id);
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+  const handleOpenNotification = (notification: AppNotification) => {
+    if (!notification.read) markAsRead.mutate(notification.id);
+    if (notification.actionUrl) {
+      setIsOpen(false);
+      router.push(notification.actionUrl as Href);
+    }
   };
 
-  const handleMarkAllAsRead = async () => {
-    await notificationService.markAllAsRead(user?.uid);
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
+  const handleMarkAllAsRead = () => markAllAsRead.mutate();
 
   const renderIcon = (type: AppNotification['type']) => {
     switch (type) {
@@ -145,7 +142,7 @@ export const NotificationModal: React.FC = () => {
                 notifications.map((n) => (
                   <TouchableOpacity
                     key={n.id}
-                    onPress={() => handleMarkAsRead(n.id)}
+                    onPress={() => handleOpenNotification(n)}
                     style={[
                       styles.notifItem,
                       {
