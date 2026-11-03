@@ -33,6 +33,7 @@ export interface ConsultationReport {
 export interface Appointment {
   id: string;
   userId: string;
+  tutorName?: string;
   petId: string;
   petName: string;
   specialistId: string;
@@ -48,10 +49,19 @@ export interface Appointment {
   report?: ConsultationReport;
 }
 
-export type CreateAppointmentInput = Omit<Appointment, 'id' | 'createdAt' | 'status' | 'updatedAt' | 'report'>;
+export interface CreateAppointmentInput {
+  petId: string;
+  specialistId: string;
+  serviceId: string;
+  date: string;
+  time: string;
+  notes?: string;
+}
 
-export type UpdateAppointmentInput = Partial<CreateAppointmentInput> & {
-  status?: AppointmentStatus;
-  report?: ConsultationReport;
-};
+export interface UpdateAppointmentInput {
+  status?: Exclude<AppointmentStatus, 'completed'>;
+  date?: string;
+  time?: string;
+  notes?: string;
+}
 

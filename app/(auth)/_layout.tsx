@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -7,20 +7,28 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { Slot, useRouter } from 'expo-router';
+import { Href, Redirect, Slot, useRouter } from 'expo-router';
 import { HeaderBrand } from '../../src/components/common/HeaderBrand';
 import { useTheme } from '../../src/contexts/ThemeContext';
+import { useAuth } from '../../src/hooks/useAuth';
+import { homeRouteFor, ROUTES } from '../../src/navigation/routes';
 import { ArrowLeft, Sun, Moon } from 'lucide-react-native';
 
+/** Telas públicas de autenticação. Usuário já logado vai direto para sua área. */
 export default function AuthLayout() {
   const router = useRouter();
   const { colors, isDark, toggleTheme } = useTheme();
+  const { status, user } = useAuth();
+
+  if (status === 'authenticated' && user?.profileCompleted) {
+    return <Redirect href={homeRouteFor(user.role) as Href} />;
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.topBar}>
         <TouchableOpacity
-          onPress={() => router.push('/')}
+          onPress={() => router.push(ROUTES.landing as Href)}
           style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
           activeOpacity={0.7}
         >

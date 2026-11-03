@@ -1,6 +1,5 @@
-import { Platform } from 'react-native';
-import { UserProfile } from '../types/auth';
-import Constants from 'expo-constants';
+import { API_BASE_URL } from '../config/apiBaseUrl';
+import { firebaseAuth } from './firebase/auth';
 
 export class ApiError extends Error {
   status: number;
@@ -11,70 +10,47 @@ export class ApiError extends Error {
   }
 }
 
-function resolveApiBaseUrl(): string {
-  // Se explicitamente definida no ambiente, usa-a
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
-  }
 
-  // Se estiver rodando em emulador Android nativo
-  if (Platform.OS === 'android') {
-    // Tenta detectar o IP do debugger da máquina host se disponível
-    const hostUri = Constants.expoConfig?.hostUri;
-    if (hostUri) {
-      const ip = hostUri.split(':')[0];
-      if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
-        return `http://${ip}:3001/api`;
-      }
-    }
-    // 10.0.2.2 é o loopback do emulador Android para o localhost do PC
-    return 'http://10.0.2.2:3001/api';
-  }
-
-  // Web e iOS Simulator
-  return 'http://localhost:3001/api';
-}
-
-export const API_BASE_URL = resolveApiBaseUrl();
-
-export async function apiFetch<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
+/**
+ * Cliente HTTP da aplicação. Envia o Firebase ID Token do usuário logado
+ * em "Authorization: Bearer" e converte erros da API em ApiError.
+ */
+export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const token = await firebaseAuth.currentUser?.getIdToken();
 
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(options.headers || {}),
-  };
-
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {}),
+      },
+    });
+  } catch {
+    throw new ApiError('Não foi possível conectar ao servidor. Verifique sua internet.', 0);
+  }
 
   if (!response.ok) {
-    let errorMessage = `Erro HTTP ${response.status}: ${response.statusText}`;
+    let message = `Erro HTTP ${response.status}`;
     try {
-      const errorJson = await response.json();
-      if (errorJson?.error) {
-        errorMessage = errorJson.error;
-      }
+      const body = await response.json();
+      if (body?.error) message = body.error;
     } catch {
-      // Falha ao interpretar JSON de erro
+      // resposta sem JSON
     }
-    throw new ApiError(errorMessage, response.status);
+    throw new ApiError(message, response.status);
   }
 
-  if (response.status === 204) {
-    return {} as T;
-  }
-
+  if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }
-export async function apiLogin(email: string, password: string): Promise<UserProfile> {
-  return apiFetch<UserProfile>('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
-}
+
+export const apiGet = <T>(endpoint: string) => apiFetch<T>(endpoint);
+export const apiPost = <T>(endpoint: string, body?: unknown) =>
+  apiFetch<T>(endpoint, { method: 'POST', body: body === undefined ? undefined : JSON.stringify(body) });
+export const apiPut = <T>(endpoint: string, body?: unknown) =>
+  apiFetch<T>(endpoint, { method: 'PUT', body: body === undefined ? undefined : JSON.stringify(body) });
+export const apiDelete = <T>(endpoint: string) => apiFetch<T>(endpoint, { method: 'DELETE' });
