@@ -1,18 +1,18 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   StyleSheet,
   ActivityIndicator,
-  Alert,
-  Platform,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useAuth } from '../../../src/hooks/useAuth';
+import { Href, useRouter } from 'expo-router';
+import { ROUTES } from '../../../src/navigation/routes';
 import { useTheme } from '../../../src/contexts/ThemeContext';
 import { usePets, useDeletePet } from '../../../src/hooks/usePets';
+import { ScreenScroll } from '../../../src/components/common/ScreenScroll';
+import { PetAvatar } from '../../../src/components/pets/PetAvatar';
+import { confirmAction, showMessage } from '../../../src/utils/confirm';
 import {
   PawPrint,
   Plus,
@@ -24,11 +24,11 @@ import {
 } from 'lucide-react-native';
 import { PetSpecies } from '../../../src/types/pet';
 
+/** Lista de pets do tutor com filtro por espécie e exclusão. */
 export default function PetsListPage() {
   const router = useRouter();
-  const { user } = useAuth();
   const { colors, isDark } = useTheme();
-  const { data: pets = [], isLoading, isError, error } = usePets(user?.uid);
+  const { data: pets = [], isLoading, isError, error } = usePets();
   const deletePetMutation = useDeletePet();
   const [speciesFilter, setSpeciesFilter] = useState<'all' | PetSpecies>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -39,42 +39,37 @@ export default function PetsListPage() {
       : pets.filter((p) => p.species === speciesFilter);
 
   const handleDelete = async (id: string, name: string) => {
-    const doDelete = async () => {
-      setDeletingId(id);
-      try {
-        await deletePetMutation.mutateAsync(id);
-      } catch (err) {
-        console.error('Erro ao excluir pet:', err);
-      } finally {
-        setDeletingId(null);
-      }
-    };
+    const confirmed = await confirmAction({
+      title: 'Remover pet',
+      message: `Remover "${name}"? As consultas futuras serão canceladas e os acessos concedidos, revogados.`,
+      confirmLabel: 'Remover',
+      destructive: true,
+    });
+    if (!confirmed) return;
 
-    if (Platform.OS === 'web') {
-      if (confirm(`Deseja realmente remover o pet "${name}" do sistema?`)) {
-        await doDelete();
-      }
-    } else {
-      Alert.alert('Remover Pet', `Deseja realmente remover o pet "${name}"?`, [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Remover', style: 'destructive', onPress: doDelete },
-      ]);
+    setDeletingId(id);
+    try {
+      await deletePetMutation.mutateAsync(id);
+    } catch (err) {
+      showMessage('Erro', (err as Error).message);
+    } finally {
+      setDeletingId(null);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenScroll>
       {/* CABEÇALHO */}
       <View style={styles.headerRow}>
         <View>
           <Text style={[styles.title, { color: colors.text }]}>Meus Pets</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Gerencie o prontuário, peso e histórico de saúde dos seus animais via API HTTP
+            Prontuário, peso e histórico de saúde dos seus animais
           </Text>
         </View>
 
         <TouchableOpacity
-          onPress={() => router.push('/(dashboard)/pets/new')}
+          onPress={() => router.push(ROUTES.tutor.newPet as Href)}
           activeOpacity={0.85}
           style={styles.newBtn}
         >
@@ -161,7 +156,7 @@ export default function PetsListPage() {
         <View style={styles.errorBox}>
           <AlertCircle size={20} color="#b91c1c" />
           <View style={{ flex: 1 }}>
-            <Text style={styles.errorTitle}>Erro na API HTTP:</Text>
+            <Text style={styles.errorTitle}>Não foi possível carregar seus pets:</Text>
             <Text style={styles.errorDesc}>
               {(error as Error)?.message || 'Falha ao buscar pets cadastrados.'}
             </Text>
@@ -190,7 +185,7 @@ export default function PetsListPage() {
                 Você ainda não possui nenhum animal cadastrado nesta categoria. Adicione um novo pet para acompanhar suas consultas.
               </Text>
               <TouchableOpacity
-                onPress={() => router.push('/(dashboard)/pets/new')}
+                onPress={() => router.push(ROUTES.tutor.newPet as Href)}
                 style={styles.emptyBtn}
               >
                 <Text style={styles.emptyBtnText}>+ Cadastrar Primeiro Pet</Text>
@@ -209,15 +204,7 @@ export default function PetsListPage() {
                 ]}
               >
                 <View style={styles.cardTop}>
-                  <Image
-                    source={{
-                      uri:
-                        pet.photoUrl ||
-                        'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=400&q=80',
-                    }}
-                    style={styles.avatar}
-                    resizeMode="cover"
-                  />
+                  <PetAvatar pet={pet} style={styles.avatar} />
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.petName, { color: colors.text }]}>{pet.name}</Text>
                     <Text style={[styles.petBreed, { color: colors.textSecondary }]}>
@@ -242,7 +229,7 @@ export default function PetsListPage() {
 
                 <View style={[styles.cardFooter, { borderTopColor: colors.border }]}>
                   <TouchableOpacity
-                    onPress={() => router.push(`/(dashboard)/pets/${pet.id}` as any)}
+                    onPress={() => router.push(ROUTES.tutor.pet(pet.id) as Href)}
                     style={[
                       styles.footerActionBtn,
                       {
@@ -260,7 +247,7 @@ export default function PetsListPage() {
                   <TouchableOpacity
                     onPress={() =>
                       router.push(
-                        `/(dashboard)/appointments/new?petId=${pet.id}&petName=${encodeURIComponent(pet.name)}` as any
+                        ROUTES.tutor.newAppointmentForPet(pet.id) as Href
                       )
                     }
                     style={[
@@ -296,7 +283,7 @@ export default function PetsListPage() {
           )}
         </View>
       )}
-    </View>
+    </ScreenScroll>
   );
 }
 

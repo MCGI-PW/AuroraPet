@@ -1,9 +1,14 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useAuth } from '../../src/hooks/useAuth';
 import { usePets } from '../../src/hooks/usePets';
 import { useAppointments, useCancelAppointment } from '../../src/hooks/useAppointments';
 import { useTheme } from '../../src/contexts/ThemeContext';
+import { ScreenScroll } from '../../src/components/common/ScreenScroll';
+import { FullScreenLoader } from '../../src/components/common/FullScreenLoader';
+import { PetAvatar } from '../../src/components/pets/PetAvatar';
+import { formatDate, isUpcoming } from '../../src/domain/appointmentRules';
+import { confirmAction } from '../../src/utils/confirm';
 import {
   Calendar,
   Clock,
@@ -14,22 +19,38 @@ import {
   Sparkles,
   HeartPulse,
 } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
+import { ROUTES } from '../../src/navigation/routes';
 
-export default function DashboardOverview() {
+/** Visão geral do tutor: resumo dos pets, próxima consulta e atalhos. */
+export default function TutorHome() {
   const router = useRouter();
   const { user } = useAuth();
   const { colors, isDark } = useTheme();
-  const { data: pets = [] } = usePets(user?.uid);
-  const { data: appointments = [] } = useAppointments(user?.uid);
+  const { data: pets = [], isLoading: loadingPets } = usePets();
+  const { data: appointments = [], isLoading: loadingAppointments } = useAppointments();
   const cancelMutation = useCancelAppointment();
 
-  const nextAppointment = appointments.find((a) => a.status === 'scheduled');
-  const scheduledCount = appointments.filter((a) => a.status === 'scheduled').length;
+  const upcoming = appointments.filter((a) => isUpcoming(a));
+  const nextAppointment = upcoming[0];
+  const scheduledCount = upcoming.length;
   const completedCount = appointments.filter((a) => a.status === 'completed').length;
 
+  const handleCancelNext = async () => {
+    if (!nextAppointment) return;
+    const confirmed = await confirmAction({
+      title: 'Cancelar consulta',
+      message: `Cancelar a consulta de ${nextAppointment.petName} em ${formatDate(nextAppointment.date)} às ${nextAppointment.time}?`,
+      confirmLabel: 'Cancelar consulta',
+      destructive: true,
+    });
+    if (confirmed) cancelMutation.mutate(nextAppointment.id);
+  };
+
+  if (loadingPets || loadingAppointments) return <FullScreenLoader message="Carregando seu painel..." />;
+
   return (
-    <View style={styles.container}>
+    <ScreenScroll>
       {/* BOAS-VINDAS */}
       <View style={styles.welcomeRow}>
         <View>
@@ -44,7 +65,7 @@ export default function DashboardOverview() {
           >
             <Sparkles size={13} color={colors.accent} />
             <Text style={[styles.welcomeBadgeText, { color: colors.accent }]}>
-              Área do Tutor Clyvo
+              Área do Tutor
             </Text>
           </View>
           <Text style={[styles.welcomeTitle, { color: colors.text }]}>
@@ -56,7 +77,7 @@ export default function DashboardOverview() {
         </View>
 
         <TouchableOpacity
-          onPress={() => router.push('/(dashboard)/appointments/new')}
+          onPress={() => router.push(ROUTES.tutor.newAppointment as Href)}
           activeOpacity={0.85}
           style={styles.newApptBtn}
         >
@@ -141,7 +162,7 @@ export default function DashboardOverview() {
             Próximo Agendamento
           </Text>
           <TouchableOpacity
-            onPress={() => router.push('/(dashboard)/appointments')}
+            onPress={() => router.push(ROUTES.tutor.appointments as Href)}
             style={styles.viewAllBtn}
           >
             <Text style={[styles.viewAllText, { color: colors.accent }]}>Ver todos</Text>
@@ -186,7 +207,7 @@ export default function DashboardOverview() {
                 <View style={styles.metaRow}>
                   <Calendar size={14} color="#10b981" />
                   <Text style={[styles.metaText, { color: colors.text }]}>
-                    {nextAppointment.date}
+                    {formatDate(nextAppointment.date)}
                   </Text>
                 </View>
                 <View style={[styles.metaRow, { marginTop: 4 }]}>
@@ -198,7 +219,7 @@ export default function DashboardOverview() {
               </View>
 
               <TouchableOpacity
-                onPress={() => cancelMutation.mutate(nextAppointment.id)}
+                onPress={handleCancelNext}
                 disabled={cancelMutation.isPending}
                 style={[
                   styles.cancelBtn,
@@ -227,7 +248,7 @@ export default function DashboardOverview() {
               Você não possui nenhuma consulta futura agendada.
             </Text>
             <TouchableOpacity
-              onPress={() => router.push('/(dashboard)/appointments/new')}
+              onPress={() => router.push(ROUTES.tutor.newAppointment as Href)}
               style={styles.emptyApptBtn}
             >
               <Text style={styles.emptyApptBtnText}>Agendar Agora</Text>
@@ -241,7 +262,7 @@ export default function DashboardOverview() {
         <View style={styles.sectionHeaderRow}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Seus Pets</Text>
           <TouchableOpacity
-            onPress={() => router.push('/(dashboard)/pets/new')}
+            onPress={() => router.push(ROUTES.tutor.newPet as Href)}
             style={styles.addPetHeaderBtn}
           >
             <Plus size={15} color={colors.accent} />
@@ -256,7 +277,7 @@ export default function DashboardOverview() {
             <TouchableOpacity
               key={pet.id}
               activeOpacity={0.8}
-              onPress={() => router.push(`/(dashboard)/pets/${pet.id}` as any)}
+              onPress={() => router.push(ROUTES.tutor.pet(pet.id) as Href)}
               style={[
                 styles.petCard,
                 {
@@ -265,15 +286,7 @@ export default function DashboardOverview() {
                 },
               ]}
             >
-              <Image
-                source={{
-                  uri:
-                    pet.photoUrl ||
-                    'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=400&q=80',
-                }}
-                style={styles.petAvatar}
-                resizeMode="cover"
-              />
+              <PetAvatar pet={pet} style={styles.petAvatar} />
               <View style={styles.petInfo}>
                 <Text style={[styles.petName, { color: colors.text }]}>{pet.name}</Text>
                 <Text style={[styles.petBreed, { color: colors.textSecondary }]}>
@@ -289,7 +302,7 @@ export default function DashboardOverview() {
           ))}
 
           <TouchableOpacity
-            onPress={() => router.push('/(dashboard)/pets/new')}
+            onPress={() => router.push(ROUTES.tutor.newPet as Href)}
             style={[
               styles.addPetCard,
               {
@@ -305,7 +318,7 @@ export default function DashboardOverview() {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </ScreenScroll>
   );
 }
 

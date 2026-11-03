@@ -7,9 +7,12 @@ import {
   ScrollView,
   StyleSheet,
   Platform,
+  Share,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Appointment } from '../../types/appointment';
+import { formatReportAsText } from '../../domain/reportFormatter';
+import { useClinicProfile } from '../../hooks/useClinic';
 import {
   FileText,
   X,
@@ -38,6 +41,7 @@ export const ConsultationReportModal: React.FC<ConsultationReportModalProps> = (
   appointment,
 }) => {
   const { colors, isDark } = useTheme();
+  const { data: clinic } = useClinicProfile();
 
   if (!appointment) return null;
   const report = appointment.report;
@@ -46,7 +50,7 @@ export const ConsultationReportModal: React.FC<ConsultationReportModalProps> = (
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       window.print();
     } else {
-      alert('Laudo pronto para compartilhamento e impressão.');
+      Share.share({ title: `Laudo de ${appointment.petName}`, message: formatReportAsText(appointment) });
     }
   };
 
@@ -112,7 +116,7 @@ export const ConsultationReportModal: React.FC<ConsultationReportModalProps> = (
                 <ShieldCheck size={24} color={colors.accent} />
                 <View>
                   <Text style={[styles.clinicOfficialName, { color: colors.text }]}>
-                    CLYVO CENTRO MÉDICO VETERINÁRIO 24H
+                    {clinic?.name?.toUpperCase() ?? 'PRONTUÁRIO VETERINÁRIO'}
                   </Text>
                   <Text style={[styles.clinicOfficialSub, { color: colors.textSecondary }]}>
                     Prontuário Médico Digital  Consulta #{appointment.id}
@@ -361,7 +365,7 @@ export const ConsultationReportModal: React.FC<ConsultationReportModalProps> = (
             >
               <Printer size={16} color={colors.text} />
               <Text style={[styles.actionBtnSecondaryText, { color: colors.text }]}>
-                Imprimir Laudo
+                {Platform.OS === 'web' ? 'Imprimir laudo' : 'Compartilhar laudo'}
               </Text>
             </TouchableOpacity>
 
