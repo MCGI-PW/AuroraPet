@@ -22,6 +22,7 @@ import {
   Clock,
   MapPin,
 } from 'lucide-react-native';
+import { ScreenScroll } from '../../src/components/common/ScreenScroll';
 
 export default function ClinicSettingsPage() {
   const { colors, isDark } = useTheme();
@@ -88,14 +89,14 @@ export default function ClinicSettingsPage() {
       <View style={styles.centerBox}>
         <ActivityIndicator size="large" color="#10b981" />
         <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-          Carregando configuraçãçães...
+          Carregando configurações...
         </Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <ScreenScroll>
       <View style={styles.titleBox}>
         <Text style={[styles.pageTitle, { color: colors.text }]}>
           Gestão & Configurações da Clínica
@@ -142,7 +143,7 @@ export default function ClinicSettingsPage() {
           Modelo de Gestão Operacional
         </Text>
         <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>
-          Escolha como o sistema deve estruturar a visualização de consultas e permissóes de agendamento:
+          Escolha como o sistema deve estruturar a visualização de consultas e permissões de agendamento:
         </Text>
 
         <View style={styles.modeGrid}>
@@ -204,7 +205,7 @@ export default function ClinicSettingsPage() {
         </View>
       </View>
 
-      {/* DADOS CADASTRAIS DA CLçãNICA */}
+      {/* DADOS CADASTRAIS DA CLÍNICA */}
       <View
         style={[
           styles.card,
@@ -353,7 +354,7 @@ export default function ClinicSettingsPage() {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </ScreenScroll>
   );
 }
 

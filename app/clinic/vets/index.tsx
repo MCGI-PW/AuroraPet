@@ -2,16 +2,14 @@ import React from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
-  Platform,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
+import { ROUTES } from '../../../src/navigation/routes';
 import { useTheme } from '../../../src/contexts/ThemeContext';
-import { useClinicSpecialists, useDeleteSpecialist } from '../../../src/hooks/useClinic';
+import { useSpecialists, useDeleteSpecialist } from '../../../src/hooks/useClinic';
 import { Specialist } from '../../../src/types/specialist';
 import {
   Users,
@@ -23,41 +21,31 @@ import {
   ShieldCheck,
   Stethoscope,
 } from 'lucide-react-native';
+import { ScreenScroll } from '../../../src/components/common/ScreenScroll';
+import { Avatar } from '../../../src/components/common/Avatar';
+import { confirmAction, showMessage } from '../../../src/utils/confirm';
 
+/** Corpo clínico: lista, edição e remoção de veterinários. */
 export default function ClinicVetsPage() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
 
-  const { data: specialists = [], isLoading } = useClinicSpecialists();
+  const { data: specialists = [], isLoading } = useSpecialists();
   const deleteMutation = useDeleteSpecialist();
 
-  const handleDelete = (id: string, name: string) => {
-    const doDelete = async () => {
-      try {
-        await deleteMutation.mutateAsync(id);
-      } catch (err) {
-        console.error('Erro ao remover veterinário:', err);
-      }
-    };
-
-    if (Platform.OS === 'web') {
-      if (confirm(`Deseja realmente remover ${name} do corpo clínico?`)) {
-        doDelete();
-      }
-    } else {
-      Alert.alert(
-        'Remover Veterinário',
-        `Deseja realmente remover ${name} do corpo clínico?`,
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Remover', style: 'destructive', onPress: doDelete },
-        ]
-      );
-    }
+  const handleDelete = async (id: string, name: string) => {
+    const confirmed = await confirmAction({
+      title: 'Remover veterinário',
+      message: `Remover ${name} do corpo clínico?`,
+      confirmLabel: 'Remover',
+      destructive: true,
+    });
+    if (!confirmed) return;
+    deleteMutation.mutate(id, { onError: (err) => showMessage('Não foi possível remover', err.message) });
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenScroll>
       {/* CABEÇALHO */}
       <View style={styles.headerRow}>
         <View>
@@ -70,7 +58,7 @@ export default function ClinicVetsPage() {
         </View>
 
         <TouchableOpacity
-          onPress={() => router.push('/(clinic)/vets/new')}
+          onPress={() => router.push(ROUTES.clinic.newVet as Href)}
           style={[styles.newVetBtn, { backgroundColor: colors.accent }]}
           activeOpacity={0.8}
         >
@@ -79,7 +67,7 @@ export default function ClinicVetsPage() {
         </TouchableOpacity>
       </View>
 
-      {/* LISTAGEM DOS MçãDICOS */}
+      {/* LISTAGEM DOS MÉDICOS */}
       {isLoading ? (
         <View style={styles.centerBox}>
           <ActivityIndicator size="large" color="#10b981" />
@@ -102,7 +90,7 @@ export default function ClinicVetsPage() {
             Cadastre os profissionais da clínica para que os tutores possam selecionar especialistas e horários de consulta.
           </Text>
           <TouchableOpacity
-            onPress={() => router.push('/(clinic)/vets/new')}
+            onPress={() => router.push(ROUTES.clinic.newVet as Href)}
             style={[styles.emptyBtn, { backgroundColor: colors.accent }]}
           >
             <Text style={styles.emptyBtnText}>+ Cadastrar Primeiro Veterinário</Text>
@@ -111,19 +99,22 @@ export default function ClinicVetsPage() {
       ) : (
         <View style={styles.grid}>
           {specialists.map((vet: Specialist) => (
-            <View
+            <TouchableOpacity
               key={vet.id}
+              activeOpacity={0.85}
+              onPress={() => router.push(ROUTES.clinic.vet(vet.id) as Href)}
               style={[
                 styles.vetCard,
                 { backgroundColor: colors.surface, borderColor: colors.border },
               ]}
             >
               <View style={styles.cardHeader}>
-                <Image source={{ uri: vet.photoUrl }} style={styles.avatar} />
+                <Avatar name={vet.name} photoUrl={vet.photoUrl} style={styles.avatar} />
                 <View style={{ flex: 1 }}>
                   <View style={styles.nameRow}>
                     <Text style={[styles.vetName, { color: colors.text }]}>
                       {vet.name}
+                      {vet.active === false ? ' (inativo)' : ''}
                     </Text>
                     <TouchableOpacity
                       onPress={() => handleDelete(vet.id, vet.name)}
@@ -172,11 +163,11 @@ export default function ClinicVetsPage() {
                   </View>
                 )}
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       )}
-    </View>
+    </ScreenScroll>
   );
 }
 

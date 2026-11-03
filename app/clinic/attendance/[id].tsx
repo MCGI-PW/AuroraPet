@@ -10,10 +10,11 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Href, useLocalSearchParams, useRouter } from 'expo-router';
+import { ROUTES } from '../../../src/navigation/routes';
 import { useTheme } from '../../../src/contexts/ThemeContext';
-import { useAppointment } from '../../../src/hooks/useAppointments';
-import { useSubmitConsultationReport } from '../../../src/hooks/useClinic';
+import { useAppointment, useSubmitConsultationReport } from '../../../src/hooks/useAppointments';
+import { useAuth } from '../../../src/hooks/useAuth';
 import { PrescriptionItem } from '../../../src/types/appointment';
 import {
   Stethoscope,
@@ -31,22 +32,29 @@ import {
   ShieldCheck,
   User,
 } from 'lucide-react-native';
+import { ScreenScroll } from '../../../src/components/common/ScreenScroll';
 
+/**
+ * Atendimento clínico: o veterinário registra anamnese, sinais vitais,
+ * diagnóstico e prescrição. Ao emitir o laudo a consulta é concluída e o
+ * tutor recebe uma notificação que abre o laudo no app.
+ */
 export default function ClinicalAttendancePage() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { user } = useAuth();
 
   const { data: appointment, isLoading, isError } = useAppointment(id);
   const submitReportMutation = useSubmitConsultationReport();
 
   // Estado do formulário clínico
   const [vetName, setVetName] = useState('');
-  const [crmv, setCrmv] = useState('CRMV-SP 42.109');
+  const [crmv, setCrmv] = useState('');
   const [weight, setWeight] = useState('');
-  const [temperature, setTemperature] = useState('38.5 °C');
-  const [heartRate, setHeartRate] = useState('120 bpm');
-  const [respiratoryRate, setRespiratoryRate] = useState('24 rpm');
+  const [temperature, setTemperature] = useState('');
+  const [heartRate, setHeartRate] = useState('');
+  const [respiratoryRate, setRespiratoryRate] = useState('');
   const [anamnesis, setAnamnesis] = useState('');
   const [physicalExam, setPhysicalExam] = useState('');
   const [diagnosis, setDiagnosis] = useState('');
@@ -65,14 +73,16 @@ export default function ClinicalAttendancePage() {
 
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  // Pré-preenche com o veterinário logado (ou o responsável pela consulta)
   useEffect(() => {
-    if (appointment) {
-      setVetName(appointment.specialistName || 'Dra. Beatriz Santos');
-      if (appointment.notes && !anamnesis) {
-        setAnamnesis(`Queixa principal relatada pelo tutor: ${appointment.notes}`);
-      }
+    if (!appointment) return;
+    const isAssignedVet = user?.role === 'veterinarian' && user.specialistId === appointment.specialistId;
+    setVetName(isAssignedVet ? user.displayName : appointment.specialistName);
+    setCrmv(isAssignedVet ? user.crmv ?? '' : '');
+    if (appointment.notes) {
+      setAnamnesis((current) => current || `Queixa principal relatada pelo tutor: ${appointment.notes}`);
     }
-  }, [appointment]);
+  }, [appointment, user]);
 
   const handleAddPrescription = () => {
     setPrescriptions((prev) => [
@@ -136,11 +146,11 @@ export default function ClinicalAttendancePage() {
 
       setFeedback({
         type: 'success',
-        message: 'Atendimento concluçãdo e Prontuário emitido com sucesso! O laudo já está disponível para o tutor.',
+        message: 'Laudo emitido e atendimento concluído. O tutor foi notificado no aplicativo.',
       });
 
       setTimeout(() => {
-        router.replace('/(clinic)/agenda');
+        router.replace(ROUTES.clinic.agenda as Href);
       }, 2000);
     } catch (err: any) {
       setFeedback({
@@ -169,7 +179,7 @@ export default function ClinicalAttendancePage() {
           Consulta não encontrada
         </Text>
         <TouchableOpacity
-          onPress={() => router.replace('/(clinic)/agenda')}
+          onPress={() => router.replace(ROUTES.clinic.agenda as Href)}
           style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
         >
           <Text style={[styles.backBtnText, { color: colors.text }]}>Voltar para a Agenda</Text>
@@ -179,7 +189,7 @@ export default function ClinicalAttendancePage() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScreenScroll>
       {/* NAVEGAÇÃO DE VOLTA */}
       <TouchableOpacity
         onPress={() => router.back()}
@@ -246,16 +256,16 @@ export default function ClinicalAttendancePage() {
         </View>
       )}
 
-      {/* FORMULçãRIO CLçãNICO */}
+      {/* FORMULÁRIO CLÍNICO */}
       <View
         style={[
           styles.formCard,
           { backgroundColor: colors.surface, borderColor: colors.border },
         ]}
       >
-        {/* IDENTIFICAçãçãO DO PROFISSIONAL */}
+        {/* IDENTIFICAÇÃO DO PROFISSIONAL */}
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          1. Identificação do Médico Responsóvel
+          1. Identificação do Médico Responsável
         </Text>
         <View style={styles.fieldsGrid}>
           <View style={styles.fieldCol}>
@@ -273,7 +283,7 @@ export default function ClinicalAttendancePage() {
               ]}
               value={vetName}
               onChangeText={setVetName}
-              placeholder="Ex: Dra. Beatriz Santos"
+              placeholder="Nome do veterinário responsável"
               placeholderTextColor={colors.textMuted}
             />
           </View>
@@ -346,7 +356,7 @@ export default function ClinicalAttendancePage() {
 
           <View style={styles.vitalCol}>
             <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
-              Freq. Cardçãaca (bpm)
+              Freq. Cardíaca (bpm)
             </Text>
             <TextInput
               style={[
@@ -366,7 +376,7 @@ export default function ClinicalAttendancePage() {
 
           <View style={styles.vitalCol}>
             <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
-              Freq. Respiratária (rpm)
+              Freq. Respiratória (rpm)
             </Text>
             <TextInput
               style={[
@@ -385,7 +395,7 @@ export default function ClinicalAttendancePage() {
           </View>
         </View>
 
-        {/* ANAMNESE & EXAME FçãSICO */}
+        {/* ANAMNESE & EXAME FÍSICO */}
         <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 24 }]}>
           3. Anamnese & Queixa Clínica
         </Text>
@@ -400,13 +410,13 @@ export default function ClinicalAttendancePage() {
           ]}
           value={anamnesis}
           onChangeText={setAnamnesis}
-          placeholder="Descreva a queixa do tutor, histárico clínico, comportamento do animal e sintomas relatados..."
+          placeholder="Descreva a queixa do tutor, histórico clínico, comportamento do animal e sintomas relatados..."
           placeholderTextColor={colors.textMuted}
           multiline
           numberOfLines={4}
         />
 
-        {/* DIAGNçãSTICO MçãDICO */}
+        {/* DIAGNÓSTICO MÉDICO */}
         <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 24 }]}>
           4. Diagnóstico Clínico & Avaliação
         </Text>
@@ -421,16 +431,16 @@ export default function ClinicalAttendancePage() {
           ]}
           value={diagnosis}
           onChangeText={setDiagnosis}
-          placeholder="Diagnóstico conclusivo ou hipçãteses diagnçãsticas com conduta terapçãutica..."
+          placeholder="Diagnóstico conclusivo ou hipóteses diagnósticas com conduta terapêutica..."
           placeholderTextColor={colors.textMuted}
           multiline
           numberOfLines={3}
         />
 
-        {/* PRESCRIçãçãO E MEDICAMENTOS */}
+        {/* PRESCRIÇÃO E MEDICAMENTOS */}
         <View style={styles.rxHeaderRow}>
           <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 0 }]}>
-            5. Prescriçãção de Medicamentos & Receituçãrio
+            5. Prescrição de Medicamentos & Receituário
           </Text>
           <TouchableOpacity
             onPress={handleAddPrescription}
@@ -501,7 +511,7 @@ export default function ClinicalAttendancePage() {
 
               <View style={styles.fieldCol}>
                 <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
-                  Frequçãncia / Posologia
+                  Frequência / Posologia
                 </Text>
                 <TextInput
                   style={[
@@ -526,7 +536,7 @@ export default function ClinicalAttendancePage() {
                   ]}
                   value={rx.duration}
                   onChangeText={(v) => handleUpdatePrescription(rx.id, 'duration', v)}
-                  placeholder="Ex: 7 dias contánuos"
+                  placeholder="Ex: 7 dias contínuos"
                   placeholderTextColor={colors.textMuted}
                 />
               </View>
@@ -536,12 +546,12 @@ export default function ClinicalAttendancePage() {
 
         {/* ORIENTAÇÕES GERAIS E RETORNO */}
         <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 24 }]}>
-          6. Orientaçãçães Gerais ao Tutor & Previsão de Retorno
+          6. Orientações Gerais ao Tutor & Previsão de Retorno
         </Text>
         <View style={styles.fieldsGrid}>
           <View style={{ width: '100%' }}>
             <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
-              Recomendaçãçães e Cuidados
+              Recomendações e Cuidados
             </Text>
             <TextInput
               style={[
@@ -554,7 +564,7 @@ export default function ClinicalAttendancePage() {
               ]}
               value={instructions}
               onChangeText={setInstructions}
-              placeholder="Instruçãçães de repouso, dieta recomendada, banhos, monitoramento de sintomas..."
+              placeholder="Instruções de repouso, dieta recomendada, banhos, monitoramento de sintomas..."
               placeholderTextColor={colors.textMuted}
               multiline
               numberOfLines={3}
@@ -582,7 +592,7 @@ export default function ClinicalAttendancePage() {
           </View>
         </View>
 
-        {/* BOTáO CONCLUIR ATENDIMENTO */}
+        {/* BOTÃO CONCLUIR ATENDIMENTO */}
         <View style={[styles.submitRow, { borderTopColor: colors.border }]}>
           <TouchableOpacity
             onPress={handleConcludeAttendance}
@@ -603,7 +613,7 @@ export default function ClinicalAttendancePage() {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </ScreenScroll>
   );
 }
 

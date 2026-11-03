@@ -11,8 +11,8 @@ import {
   Pressable,
 } from 'react-native';
 import { useTheme } from '../../src/contexts/ThemeContext';
-import { useAuth } from '../../src/contexts/AuthContext';
-import { useClinicRequests, useUpdateRequestStatus } from '../../src/hooks/useClinic';
+import { showMessage } from '../../src/utils/confirm';
+import { useAdministrativeRequests, useUpdateRequestStatus } from '../../src/hooks/useRequests';
 import {
   FileText,
   AlertTriangle,
@@ -32,8 +32,8 @@ import {
 
 export default function ClinicRequestsPage() {
   const { colors, isDark } = useTheme();
-  const { user } = useAuth();
-  const { data: requests = [], isLoading } = useClinicRequests();
+
+  const { data: requests = [], isLoading } = useAdministrativeRequests();
   const updateStatusMutation = useUpdateRequestStatus();
 
   const [selectedReq, setSelectedReq] = useState<AdministrativeRequest | null>(null);
@@ -47,18 +47,19 @@ export default function ClinicRequestsPage() {
     setFeedbackInput(req.adminFeedback || '');
   };
 
-  const handleConfirmAction = async () => {
+  // O nome do administrador que responde é registrado pela API a partir do token.
+  const handleConfirmAction = () => {
     if (!selectedReq) return;
-
-    await updateStatusMutation.mutateAsync({
-      requestId: selectedReq.id,
-      status: targetStatus,
-      feedback: feedbackInput.trim() || undefined,
-      adminName: user?.displayName || 'Administrador Clyvo',
-    });
-
-    setSelectedReq(null);
-    setFeedbackInput('');
+    updateStatusMutation.mutate(
+      { requestId: selectedReq.id, status: targetStatus, feedback: feedbackInput.trim() || undefined },
+      {
+        onSuccess: () => {
+          setSelectedReq(null);
+          setFeedbackInput('');
+        },
+        onError: (err) => showMessage('Não foi possível atualizar', err.message),
+      }
+    );
   };
 
   const getPriorityColor = (priority: RequestPriority) => {
@@ -126,7 +127,7 @@ export default function ClinicRequestsPage() {
           >
             <Sparkles size={13} color={colors.accent} />
             <Text style={[styles.badgeText, { color: colors.accent }]}>
-              Comunicação Administrativa da Equipe (3FN)
+              Comunicação administrativa da equipe
             </Text>
           </View>
         </View>

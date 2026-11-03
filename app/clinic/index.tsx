@@ -6,9 +6,10 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
+import { ROUTES } from '../../src/navigation/routes';
 import { useTheme } from '../../src/contexts/ThemeContext';
-import { useClinicProfile, useClinicSpecialists } from '../../src/hooks/useClinic';
+import { useClinicProfile, useSpecialists } from '../../src/hooks/useClinic';
 import { useAppointments } from '../../src/hooks/useAppointments';
 import {
   CalendarDays,
@@ -23,13 +24,14 @@ import {
   FileText,
   Plus,
 } from 'lucide-react-native';
+import { ScreenScroll } from '../../src/components/common/ScreenScroll';
 
 export default function ClinicDashboardPage() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
 
   const { data: clinic, isLoading: loadingClinic } = useClinicProfile();
-  const { data: specialists = [], isLoading: loadingSpecs } = useClinicSpecialists();
+  const { data: specialists = [], isLoading: loadingSpecs } = useSpecialists();
   const { data: appointments = [], isLoading: loadingApps } = useAppointments();
 
   const scheduledApps = appointments.filter((a) => a.status === 'scheduled');
@@ -49,8 +51,8 @@ export default function ClinicDashboardPage() {
   }
 
   return (
-    <View style={styles.container}>
-      {/* BANNER INSTITUCIONAL DA CLçãNICA */}
+    <ScreenScroll>
+      {/* BANNER INSTITUCIONAL DA CLÍNICA */}
       <View
         style={[
           styles.clinicBanner,
@@ -67,7 +69,7 @@ export default function ClinicDashboardPage() {
           <View style={{ flex: 1 }}>
             <View style={styles.clinicTitleRow}>
               <Text style={[styles.clinicName, { color: colors.text }]}>
-                {clinic?.name || 'Clyvo Centro Médico Veterinário'}
+                {clinic?.name}
               </Text>
               <View
                 style={[
@@ -170,7 +172,7 @@ export default function ClinicDashboardPage() {
       {/* AÇÕES RÁPIDAS */}
       <View style={styles.quickActionsRow}>
         <TouchableOpacity
-          onPress={() => router.push('/(clinic)/agenda')}
+          onPress={() => router.push(ROUTES.clinic.agenda as Href)}
           style={[styles.quickBtnPrimary, { backgroundColor: colors.accent }]}
           activeOpacity={0.8}
         >
@@ -179,7 +181,7 @@ export default function ClinicDashboardPage() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => router.push('/(clinic)/vets/new')}
+          onPress={() => router.push(ROUTES.clinic.newVet as Href)}
           style={[
             styles.quickBtnSecondary,
             { backgroundColor: colors.surface, borderColor: colors.border },
@@ -211,7 +213,7 @@ export default function ClinicDashboardPage() {
           </View>
 
           <TouchableOpacity
-            onPress={() => router.push('/(clinic)/agenda')}
+            onPress={() => router.push(ROUTES.clinic.agenda as Href)}
             style={styles.seeAllBtn}
           >
             <Text style={[styles.seeAllText, { color: colors.accent }]}>Ver todas</Text>
@@ -226,7 +228,7 @@ export default function ClinicDashboardPage() {
               Fila zerada no momento!
             </Text>
             <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-              Não há pacientes aguardando atendimento agora. Todas as consultas marcadas já foram concluçãdas.
+              Não há pacientes aguardando atendimento agora. Todas as consultas marcadas já foram concluídas.
             </Text>
           </View>
         ) : (
@@ -258,7 +260,7 @@ export default function ClinicDashboardPage() {
               </View>
 
               <TouchableOpacity
-                onPress={() => router.push(`/(clinic)/attendance/${item.id}` as any)}
+                onPress={() => router.push(ROUTES.clinic.attendance(item.id) as Href)}
                 style={[styles.attendBtn, { backgroundColor: colors.accent }]}
                 activeOpacity={0.8}
               >
@@ -269,7 +271,7 @@ export default function ClinicDashboardPage() {
           ))
         )}
       </View>
-    </View>
+    </ScreenScroll>
   );
 }
 

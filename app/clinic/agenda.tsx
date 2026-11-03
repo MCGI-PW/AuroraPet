@@ -7,11 +7,12 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
+import { ROUTES } from '../../src/navigation/routes';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAppointments } from '../../src/hooks/useAppointments';
-import { useClinicSpecialists } from '../../src/hooks/useClinic';
-import { ConsultationReportModal } from '../../src/components/dashboard/ConsultationReportModal';
+import { useSpecialists } from '../../src/hooks/useClinic';
+import { ConsultationReportModal } from '../../src/components/appointments/ConsultationReportModal';
 import { Appointment, AppointmentStatus } from '../../src/types/appointment';
 import { Specialist } from '../../src/types/specialist';
 import {
@@ -25,13 +26,14 @@ import {
   User,
   ArrowRight,
 } from 'lucide-react-native';
+import { ScreenScroll } from '../../src/components/common/ScreenScroll';
 
 export default function ClinicAgendaPage() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
 
   const { data: appointments = [], isLoading: loadingApps } = useAppointments();
-  const { data: specialists = [], isLoading: loadingSpecs } = useClinicSpecialists();
+  const { data: specialists = [], isLoading: loadingSpecs } = useSpecialists();
 
   const [statusFilter, setStatusFilter] = useState<'all' | AppointmentStatus>('all');
   const [selectedVetId, setSelectedVetId] = useState<string>('all');
@@ -60,7 +62,7 @@ export default function ClinicAgendaPage() {
       case 'completed':
         return (
           <View style={[styles.badgeContainer, { backgroundColor: '#e0f2fe' }]}>
-            <Text style={[styles.badgeText, { color: '#0369a1' }]}>Atendido / Concluçãdo</Text>
+            <Text style={[styles.badgeText, { color: '#0369a1' }]}>Atendido / Concluído</Text>
           </View>
         );
       case 'cancelled':
@@ -75,7 +77,7 @@ export default function ClinicAgendaPage() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenScroll>
       {/* CABEÇALHO */}
       <View style={styles.headerBox}>
         <View>
@@ -88,10 +90,10 @@ export default function ClinicAgendaPage() {
         </View>
       </View>
 
-      {/* FILTROS POR VETERINçãRIO */}
+      {/* FILTROS POR VETERINÁRIO */}
       <View style={styles.filterSection}>
         <Text style={[styles.filterSectionTitle, { color: colors.textSecondary }]}>
-          FILTRAR POR VETERINçãRIO DA EQUIPE:
+          FILTRAR POR VETERINÁRIO DA EQUIPE:
         </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.vetFilterRow}>
           <TouchableOpacity
@@ -110,7 +112,7 @@ export default function ClinicAgendaPage() {
                 { color: selectedVetId === 'all' ? colors.accent : colors.textSecondary },
               ]}
             >
-              Todos os MÃ©dicos ({appointments.length})
+              Todos os Médicos ({appointments.length})
             </Text>
           </TouchableOpacity>
 
@@ -156,7 +158,7 @@ export default function ClinicAgendaPage() {
               : st === 'scheduled'
               ? 'Aguardando'
               : st === 'completed'
-              ? 'Concluçãdas'
+              ? 'Concluídas'
               : 'Canceladas';
 
           return (
@@ -273,11 +275,11 @@ export default function ClinicAgendaPage() {
                 ) : null}
               </View>
 
-              {/* AÇÕES DA CLçãNICA */}
+              {/* AÇÕES DA CLÍNICA */}
               <View style={[styles.cardFooter, { borderTopColor: colors.border }]}>
                 {item.status === 'scheduled' ? (
                   <TouchableOpacity
-                    onPress={() => router.push(`/(clinic)/attendance/${item.id}` as any)}
+                    onPress={() => router.push(ROUTES.clinic.attendance(item.id) as Href)}
                     style={[styles.attendBtn, { backgroundColor: colors.accent }]}
                     activeOpacity={0.8}
                   >
@@ -299,7 +301,7 @@ export default function ClinicAgendaPage() {
                   >
                     <FileText size={16} color="#10b981" />
                     <Text style={[styles.viewReportBtnText, { color: '#10b981' }]}>
-                      Ver Prontuário / Relatário Emitido
+                      Ver Prontuário / Relatório Emitido
                     </Text>
                   </TouchableOpacity>
                 ) : (
@@ -313,13 +315,13 @@ export default function ClinicAgendaPage() {
         </View>
       )}
 
-      {/* MODAL DE PRONTUçãRIO */}
+      {/* MODAL DE PRONTUÁRIO */}
       <ConsultationReportModal
         visible={Boolean(reportAppointment)}
         onClose={() => setReportAppointment(null)}
         appointment={reportAppointment}
       />
-    </View>
+    </ScreenScroll>
   );
 }
 

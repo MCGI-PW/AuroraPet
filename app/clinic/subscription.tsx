@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { useTheme } from '../../src/contexts/ThemeContext';
-import { usePlans, useClinicSubscription, useUpgradePlan } from '../../src/hooks/useClinic';
+import { usePlans, useClinicSubscription, useChangePlan } from '../../src/hooks/useClinic';
 import {
   ShieldCheck,
   Zap,
@@ -28,7 +28,7 @@ export default function SubscriptionPage() {
   const { colors, isDark } = useTheme();
   const { data: plans = [], isLoading: plansLoading } = usePlans();
   const { data: subscription, isLoading: subLoading } = useClinicSubscription();
-  const upgradeMutation = useUpgradePlan();
+  const upgradeMutation = useChangePlan();
 
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -110,7 +110,7 @@ export default function SubscriptionPage() {
           >
             <Sparkles size={13} color={colors.accent} />
             <Text style={[styles.badgeText, { color: colors.accent }]}>
-              ClyvoVet SaaS • Gestão de Assinatura & Cotas (3FN)
+              Assinatura da clínica e uso das cotas
             </Text>
           </View>
         </View>
@@ -144,7 +144,7 @@ export default function SubscriptionPage() {
               Assinatura Ativa
             </Text>
             <Text style={[styles.planNameCurrent, { color: colors.text }]}>
-              {subscription?.planName || 'Clyvo Pro'}
+              {subscription?.planName}
             </Text>
           </View>
           <View style={styles.statusPill}>
