@@ -90,3 +90,42 @@ jobs:
             --app "${{ vars.FIREBASE_ANDROID_APP_ID }}" \
             --testers "${{ vars.FIREBASE_TESTERS }}" \
             --release-notes "AuroraPet ${{ github.ref_name }} — commit ${{ github.sha }}"
+
+  smoke-test:
+    name: Abrir o APK no emulador Android
+    needs: apk
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Baixar APK
+        uses: actions/download-artifact@v4
+        with:
+          name: aurorapet-apk
+          path: apk
+
+      - name: Habilitar KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Instalar e abrir o app no emulador (Android 14)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: bash scripts/android-smoke-test.sh
+
+      - name: Guardar print e logcat
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test
+          path: |
+            smoke-launch.png
+            smoke-logcat.txt
+          retention-days: 14
