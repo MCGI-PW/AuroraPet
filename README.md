@@ -131,7 +131,20 @@ Erros sempre como `{ "error": "mensagem" }` com o status HTTP correto (400, 401,
 1. Ao criar a tag `vX.Y.Z`, o workflow [`android-release.yml`](.github/workflows/android-release.yml) compila o APK **a partir daquele commit** (`expo prebuild` + Gradle), anexa à Release do GitHub e envia ao **Firebase App Distribution** para os testers.
 2. O hash do commit (`GITHUB_SHA`) é gravado no app e exibido em **Sobre o App** → o APK instalado pode ser conferido com o commit do repositório.
 
-## 9. Como executar
+## 9. Qualidade e testes
+
+| Verificação | Onde |
+|---|---|
+| TypeScript sem erros (`tsc --noEmit`) | local e no CI a cada build do APK |
+| Teste de integração da API: os 3 perfis, permissões (401/403), CRUDs, agenda, LGPD, laudo e notificações | [`server/test/api.e2e.test.js`](server/test/api.e2e.test.js) |
+| Teste unitário da persistência no Firestore | [`server/test/firestoreStorage.test.js`](server/test/firestoreStorage.test.js) |
+| **APK aberto em emulador Android 14** no CI (falha se o app fechar ou houver erro fatal) | job `smoke-test` em [`android-release.yml`](.github/workflows/android-release.yml) |
+
+## 10. Hospedagem da API
+
+A API roda no **Render** ([`render.yaml`](render.yaml), pasta `server/`). Como o plano gratuito apaga o disco ao reiniciar, os dados são persistidos no **Cloud Firestore** do mesmo projeto Firebase (variável `FIREBASE_SERVICE_ACCOUNT`, configurada só no painel do Render). As regras do Firestore ([`firestore.rules`](firestore.rules)) negam qualquer acesso direto do app: todos os dados passam pela API, que valida o token e o perfil.
+
+## 11. Como executar
 
 **Pré-requisitos:** Node.js 20+, npm. Para o celular: app Expo Go ou emulador Android.
 
@@ -163,7 +176,7 @@ firebase emulators:start --only auth --project demo-aurorapet  # outro terminal
 npm --prefix server test                                       # fluxo completo da API (3 perfis)
 ```
 
-## 10. Roteiro do vídeo
+## 12. Roteiro do vídeo
 
 1. **Sobre o App** — mostrar a versão e o hash do commit (igual ao do GitHub) e o app instalado pelo App Distribution.
 2. **Cadastro e login** — validações, erro de senha, criação de conta de tutor; fechar e reabrir o app (sessão mantida).
