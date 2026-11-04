@@ -1,0 +1,15 @@
+# Deploy da API (server/) no Render — https://render.com/deploy
+services:
+  - type: web
+    name: aurorapet-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: FIREBASE_PROJECT_ID
+        value: aurorapet-fiap

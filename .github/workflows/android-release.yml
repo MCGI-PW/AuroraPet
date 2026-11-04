@@ -1,0 +1,91 @@
+# Build do APK Android a partir do commit exato do repositório.
+#
+# - Tag v* (ex.: v1.0.0) ou execução manual: gera o APK de release.
+# - O hash do commit (GITHUB_SHA) é gravado no app e aparece na tela
+#   "Sobre o App", garantindo que o APK publicado corresponde ao código.
+# - O APK é anexado à Release do GitHub e, se os segredos abaixo existirem,
+#   enviado ao Firebase App Distribution para os testers cadastrados:
+#     secrets.FIREBASE_SERVICE_ACCOUNT   -> JSON da conta de serviço do Firebase
+#     vars.FIREBASE_ANDROID_APP_ID       -> App ID Android (1:xxxx:android:yyyy)
+#     vars.FIREBASE_TESTERS              -> e-mails separados por vírgula
+
+name: Android APK (Firebase App Distribution)
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    name: Build APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Verificar tipos (TypeScript)
+        run: npx tsc --noEmit
+
+      - name: Gerar projeto Android (Expo prebuild)
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Compilar APK de release
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Nomear APK com a versão e o commit
+        id: apk
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          FILE="AuroraPet-${GITHUB_REF_NAME//\//-}-${SHORT_SHA}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "$FILE"
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Guardar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurorapet-apk
+          path: ${{ steps.apk.outputs.file }}
+          retention-days: 30
+
+      - name: Publicar na Release do GitHub
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.apk.outputs.file }}
+          body: |
+            APK gerado a partir do commit ${{ github.sha }}.
+            O mesmo hash aparece na tela "Sobre o App".
+
+      - name: Enviar ao Firebase App Distribution
+        if: ${{ vars.FIREBASE_ANDROID_APP_ID != '' }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then echo "::warning::FIREBASE_SERVICE_ACCOUNT não configurado"; exit 0; fi
+          echo "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          npx --yes firebase-tools@13 appdistribution:distribute "${{ steps.apk.outputs.file }}" \
+            --app "${{ vars.FIREBASE_ANDROID_APP_ID }}" \
+            --testers "${{ vars.FIREBASE_TESTERS }}" \
+            --release-notes "AuroraPet ${{ github.ref_name }} — commit ${{ github.sha }}"
