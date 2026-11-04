@@ -2,7 +2,7 @@ const { Router } = require('express');
 const db = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { badRequest, conflict } = require('../errors');
-const { ROLES, linkVeterinarian } = require('../services/users');
+const { ROLES, findUser, linkVeterinarian } = require('../services/users');
 const { text } = require('../validation');
 
 const router = Router();
@@ -13,6 +13,8 @@ router.use(requireAuth);
  * Firebase o perfil é criado com o papel padrão "tutor".
  */
 router.get('/me', (req, res) => {
+  // relê o perfil: uma requisição concorrente (PUT do cadastro) pode tê-lo criado
+  req.user = findUser(req.auth.uid);
   if (!req.user) {
     const profile = {
       uid: req.auth.uid,
@@ -35,7 +37,7 @@ router.get('/me', (req, res) => {
  */
 router.put('/me', (req, res) => {
   const users = db.collection('users');
-  let profile = req.user;
+  let profile = findUser(req.auth.uid);
   if (!profile) {
     profile = { uid: req.auth.uid, email: req.auth.email, role: 'tutor', profileCompleted: false, createdAt: db.nowIso() };
     users.push(profile);

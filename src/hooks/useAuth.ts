@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
 import { userService } from '../services/userService';
@@ -40,6 +40,18 @@ export function useAuth() {
 }
 
 /**
+ * Grava o perfil no cache. O perfil pode ter sido buscado assim que a sessão
+ * foi criada (antes de o cadastro ser concluído); a invalidação cancela essa
+ * busca antiga e refaz a consulta, evitando que uma resposta atrasada
+ * sobrescreva o perfil atualizado.
+ */
+async function storeProfile(queryClient: QueryClient, uid: string, profile: UserProfile) {
+  const key = queryKeys.me(uid);
+  queryClient.setQueryData(key, profile);
+  await queryClient.invalidateQueries({ queryKey: key });
+}
+
+/**
  * Login no Firebase Authentication seguido do carregamento do perfil na API.
  * O layout de autenticação redireciona para a área do usuário em seguida.
  */
@@ -50,7 +62,7 @@ export function useLogin() {
       const firebaseUser = await authService.signIn(email, password);
       let profile = await userService.getMe();
       if (!profile.profileCompleted) profile = await userService.updateMe({});
-      queryClient.setQueryData(queryKeys.me(firebaseUser.uid), profile);
+      await storeProfile(queryClient, firebaseUser.uid, profile);
       return profile;
     },
   });
@@ -76,7 +88,7 @@ export function useRegister() {
         crmv: input.crmv,
         specialty: input.specialty,
       });
-      queryClient.setQueryData(queryKeys.me(firebaseUser.uid), profile);
+      await storeProfile(queryClient, firebaseUser.uid, profile);
       return profile;
     },
   });
