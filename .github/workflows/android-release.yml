@@ -1,6 +1,7 @@
 # Build do APK Android a partir do commit exato do repositório.
 #
 # - Tag v* (ex.: v1.0.0) ou execução manual: gera o APK de release.
+#   Tags de teste (ex.: v1.0.0-rc.1) só compilam e guardam o APK como artefato.
 # - O hash do commit (GITHUB_SHA) é gravado no app e aparece na tela
 #   "Sobre o App", garantindo que o APK publicado corresponde ao código.
 # - O APK é anexado à Release do GitHub e, se os segredos abaixo existirem,
@@ -69,7 +70,7 @@ jobs:
           retention-days: 30
 
       - name: Publicar na Release do GitHub
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') && !contains(github.ref_name, '-')
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ steps.apk.outputs.file }}
@@ -78,7 +79,7 @@ jobs:
             O mesmo hash aparece na tela "Sobre o App".
 
       - name: Enviar ao Firebase App Distribution
-        if: ${{ vars.FIREBASE_ANDROID_APP_ID != '' }}
+        if: ${{ vars.FIREBASE_ANDROID_APP_ID != '' && !contains(github.ref_name, '-') }}
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
