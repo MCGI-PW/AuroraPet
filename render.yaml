@@ -13,3 +13,7 @@ services:
         value: "20"
       - key: FIREBASE_PROJECT_ID
         value: aurorapet-fiap
+      # JSON da conta de serviço do Firebase (persistência no Firestore);
+      # informado no painel do Render, nunca no repositório
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false

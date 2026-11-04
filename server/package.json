@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node --test test/api.e2e.test.js"
+    "test": "node --test test/firestoreStorage.test.js test/api.e2e.test.js",
+    "test:unit": "node --test test/firestoreStorage.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
