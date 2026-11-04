@@ -237,7 +237,7 @@ export default function ClinicRequestsPage() {
                   {req.description}
                 </Text>
 
-                {req.adminFeedback && (
+                {!!req.adminFeedback && (
                   <View
                     style={[
                       styles.feedbackPreview,

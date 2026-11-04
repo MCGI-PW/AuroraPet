@@ -62,7 +62,12 @@ export function useRegister() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: RegisterInput): Promise<UserProfile> => {
-      const firebaseUser = await authService.createAccount(input.name, input.email, input.password);
+      // se a conta já foi criada numa tentativa anterior (ex.: CRMV recusado), só conclui o perfil
+      const current = authService.currentUser();
+      const firebaseUser =
+        current && current.email === input.email.trim().toLowerCase()
+          ? current
+          : await authService.createAccount(input.name, input.email, input.password);
       const profile = await userService.updateMe({
         displayName: input.name,
         role: input.role,

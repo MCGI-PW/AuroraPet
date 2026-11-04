@@ -73,7 +73,7 @@ export const PetAuthorizationsPanel: React.FC<PetAuthorizationsPanelProps> = ({ 
               {authorization.crmv} • desde {formatDate(authorization.authorizedAt)}
               {authorization.expiresAt ? ` • até ${formatDate(authorization.expiresAt)}` : ' • sem prazo'}
             </Text>
-            {authorization.revocationReason && (
+            {!!authorization.revocationReason && (
               <Text style={[styles.meta, { color: colors.textMuted }]}>Motivo: {authorization.revocationReason}</Text>
             )}
             {authorization.status === 'ACTIVE' && (

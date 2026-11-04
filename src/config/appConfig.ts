@@ -18,6 +18,7 @@ interface AppExtra {
   buildDate: string;
   repositoryUrl: string;
   apiUrl: string;
+  authEmulatorHost: string;
   firebase: FirebaseWebConfig;
 }
 
@@ -30,5 +31,6 @@ export const appConfig = {
   buildDate: extra.buildDate ?? '',
   repositoryUrl: extra.repositoryUrl ?? 'https://github.com/MCGI-PW/AuroraPet',
   apiUrl: extra.apiUrl ?? 'http://localhost:3001/api',
+  authEmulatorHost: extra.authEmulatorHost ?? '',
   firebase: extra.firebase as FirebaseWebConfig,
 };

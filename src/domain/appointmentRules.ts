@@ -36,9 +36,12 @@ export function availableDatesFor(specialist: Specialist | undefined, days = 21,
   for (let offset = 0; offset < days; offset += 1) {
     const date = new Date(from.getFullYear(), from.getMonth(), from.getDate() + offset);
     const weekday = WEEKDAYS[date.getDay()];
-    if (!specialist.availableDays?.length || specialist.availableDays.includes(weekday)) {
-      result.push(toIsoDate(date));
-    }
+    const isoDate = toIsoDate(date);
+    const worksThatDay = !specialist.availableDays?.length || specialist.availableDays.includes(weekday);
+    // hoje só aparece se ainda houver algum horário de atendimento pela frente
+    const hasFutureHour =
+      offset > 0 || (specialist.availableHours ?? []).some((time) => appointmentDateTime(isoDate, time) > from);
+    if (worksThatDay && hasFutureHour) result.push(isoDate);
   }
   return result;
 }

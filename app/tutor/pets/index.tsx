@@ -210,7 +210,7 @@ export default function PetsListPage() {
                     <Text style={[styles.petBreed, { color: colors.textSecondary }]}>
                       {pet.breed} • {pet.age}
                     </Text>
-                    {pet.weight && (
+                    {!!pet.weight && (
                       <Text style={[styles.petWeight, { color: colors.textMuted }]}>
                         Peso: {pet.weight}
                       </Text>

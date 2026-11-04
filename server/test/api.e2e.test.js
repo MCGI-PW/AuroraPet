@@ -100,6 +100,9 @@ test('fluxo completo: tutor agenda, veterinário atende e tutor recebe o laudo',
   assert.equal(vetProfile.status, 200);
   assert.ok(vetProfile.body.specialistId, 'veterinário deve ser vinculado ao corpo clínico');
   assert.equal((await admin.put('/users/me', { displayName: 'Dra. Admin', role: 'clinic_admin' })).status, 200);
+  const duplicateVet = client(await signUp(`vet2${stamp}@teste.com`));
+  const duplicate = await duplicateVet.put('/users/me', { displayName: 'Outro Vet', role: 'veterinarian', crmv: 'CRMV-SP 99.999' });
+  assert.equal(duplicate.status, 409, 'CRMV não pode ser vinculado a duas contas');
   assert.equal((await tutor.put('/users/me', { role: 'clinic_admin' })).status, 409, 'tipo de conta não pode mudar');
 
   // controle de acesso por perfil

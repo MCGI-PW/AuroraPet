@@ -1,4 +1,5 @@
 const db = require('../db');
+const { conflict } = require('../errors');
 
 const ROLES = ['tutor', 'veterinarian', 'clinic_admin'];
 const STAFF_ROLES = ['veterinarian', 'clinic_admin'];
@@ -23,7 +24,17 @@ function userBySpecialist(specialistId) {
 function linkVeterinarian(user, { crmv, specialty }) {
   const specialists = db.collection('specialists');
   const email = (user.email || '').toLowerCase();
+  const normalizedCrmv = crmv.replace(/\s+/g, ' ').toLowerCase();
+
+  // CRMV é único: se já existe no corpo clínico, só pode ser vinculado se estiver livre
+  const sameCrmv = specialists.find((s) => (s.crmv || '').replace(/\s+/g, ' ').toLowerCase() === normalizedCrmv);
+  if (sameCrmv) {
+    if (userBySpecialist(sameCrmv.id)) throw conflict('Este CRMV já está vinculado a outra conta.');
+    return sameCrmv;
+  }
+
   let specialist = specialists.find((s) => (s.email || '').toLowerCase() === email && email);
+  if (specialist && userBySpecialist(specialist.id)) specialist = undefined;
 
   if (!specialist) {
     specialist = {

@@ -110,7 +110,7 @@ export default function PetDetailPage() {
           <Text style={[styles.petMeta, { color: colors.textSecondary }]}>
             {speciesLabel(pet.species)} • {pet.breed} • {pet.age}
           </Text>
-          {pet.weight && <Text style={[styles.petMeta, { color: colors.textMuted }]}>Peso: {pet.weight}</Text>}
+          {!!pet.weight && <Text style={[styles.petMeta, { color: colors.textMuted }]}>Peso: {pet.weight}</Text>}
         </View>
       </View>
 

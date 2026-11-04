@@ -303,7 +303,7 @@ export const ConsultationReportModal: React.FC<ConsultationReportModalProps> = (
                              Duração: <Text style={{ color: colors.text, fontWeight: '700' }}>{rx.duration}</Text>
                           </Text>
                         </View>
-                        {rx.instructions && (
+                        {!!rx.instructions && (
                           <Text style={[styles.rxNote, { color: colors.textMuted }]}>
                             Instrução: {rx.instructions}
                           </Text>

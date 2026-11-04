@@ -61,6 +61,11 @@ export const authService = {
     });
   },
 
+  /** Usuário da sessão atual do Firebase (ou null). */
+  currentUser(): User | null {
+    return firebaseAuth.currentUser;
+  },
+
   signOut(): Promise<void> {
     return signOut(firebaseAuth);
   },

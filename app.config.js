@@ -75,6 +75,8 @@ module.exports = {
       buildDate: new Date().toISOString(),
       repositoryUrl: 'https://github.com/MCGI-PW/AuroraPet',
       apiUrl: env.EXPO_PUBLIC_API_URL || PRODUCTION.apiUrl,
+      // somente desenvolvimento/testes: usa o Firebase Auth Emulator
+      authEmulatorHost: env.EXPO_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || '',
       firebase: {
         apiKey: env.EXPO_PUBLIC_FIREBASE_API_KEY || PRODUCTION.firebase.apiKey,
         authDomain: env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || PRODUCTION.firebase.authDomain,

@@ -92,7 +92,7 @@ export default function ClinicDashboardPage() {
             </Text>
 
             <Text style={[styles.clinicAddress, { color: colors.textMuted }]}>
-              ?? {clinic?.address || 'São Paulo - SP'} • ?? {clinic?.phone || '(11) 3088-4200'}
+              📍 {clinic?.address} • 📞 {clinic?.phone}
             </Text>
           </View>
         </View>

@@ -114,7 +114,7 @@ export default function VetPortalPage() {
               </View>
               <Text style={[styles.meta, { color: PRIORITY_COLORS[r.priority] }]}>Prioridade {PRIORITY_LABELS[r.priority]}</Text>
               <Text style={[styles.meta, { color: colors.textSecondary }]}>{r.description}</Text>
-              {r.adminFeedback && (
+              {!!r.adminFeedback && (
                 <Text style={[styles.feedback, { color: colors.text, backgroundColor: colors.primaryLight }]}>
                   Parecer: {r.adminFeedback}
                 </Text>
