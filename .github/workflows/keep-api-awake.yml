@@ -1,0 +1,15 @@
+# Mantém a API do Render ativa: no plano gratuito ela hiberna após 15 min sem
+# uso e leva ~50 s para acordar. O ping a cada 10 min evita essa espera no app.
+name: Manter API ativa
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Healthcheck da API
+        run: curl -fsS --max-time 90 --retry 2 https://aurorapet-api.onrender.com/api/health
