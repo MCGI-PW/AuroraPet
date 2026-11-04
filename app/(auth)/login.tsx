@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import { Href, useRouter } from 'expo-router';
 import { AlertCircle, Lock, LogIn, Mail } from 'lucide-react-native';
-import { useLogin } from '../../src/hooks/useAuth';
+import { useAuth, useLogin } from '../../src/hooks/useAuth';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { validateLoginForm } from '../../src/utils/validation';
 import { ROUTES } from '../../src/navigation/routes';
@@ -16,6 +16,7 @@ import { authFormStyles as styles } from '../../src/components/auth/authFormStyl
 export default function LoginPage() {
   const router = useRouter();
   const login = useLogin();
+  const { authAvailable } = useAuth();
   const { colors } = useTheme();
 
   const [email, setEmail] = useState('');
@@ -41,7 +42,10 @@ export default function LoginPage() {
         </Text>
       </View>
 
-      <FormError message={error} icon={<AlertCircle size={16} color="#b91c1c" />} />
+      <FormError
+        message={authAvailable ? error : 'Login temporariamente indisponível: o app foi gerado sem a configuração do Firebase.'}
+        icon={<AlertCircle size={16} color="#b91c1c" />}
+      />
 
       <IconTextField
         label="E-mail"

@@ -17,7 +17,7 @@ export class ApiError extends Error {
  */
 export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-  const token = await firebaseAuth.currentUser?.getIdToken();
+  const token = await firebaseAuth?.currentUser?.getIdToken();
 
   let response: Response;
   try {

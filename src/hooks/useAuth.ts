@@ -34,6 +34,8 @@ export function useAuth() {
     user: firebaseUser ? (profileQuery.data ?? null) : null,
     profileError: profileQuery.error as Error | null,
     retryProfile: profileQuery.refetch,
+    /** false quando o build não tem a configuração do Firebase. */
+    authAvailable: authService.isAvailable,
   };
 }
 
