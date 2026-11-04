@@ -6,7 +6,9 @@
 | | |
 |---|---|
 | 🎬 **Vídeo de apresentação** | **https://youtu.be/COLOCAR_LINK_DO_VIDEO** |
-| 📲 **App publicado** | Firebase App Distribution (o e-mail do professor está cadastrado como tester) |
+| 📲 **App publicado** | Firebase App Distribution — versão **1.0.0 (build 1)**, tester: proffelipe.oliveira@fiap.com.br |
+| 🔖 **Versão publicada = commit** | tag [`v1.0.0`](https://github.com/MCGI-PW/AuroraPet/releases/tag/v1.0.0) → commit [`e1ad2a1`](https://github.com/MCGI-PW/AuroraPet/commit/e1ad2a1) |
+| 🌐 **API** | https://aurorapet-api.onrender.com/api/health |
 | 📦 **APK de cada versão** | [Releases do GitHub](https://github.com/MCGI-PW/AuroraPet/releases) (gerado pelo CI a partir do commit) |
 | 🔎 **Versão instalada** | Tela **Sobre o App** mostra o *hash do commit* usado no build |
 
