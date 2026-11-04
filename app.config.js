@@ -19,14 +19,16 @@ function resolveCommitHash() {
 }
 
 const PRODUCTION = {
-  apiUrl: 'https://aurorapet-api.azurewebsites.net/api',
+  apiUrl: 'https://aurorapet-api.onrender.com/api',
+  // Configuração pública do app Web do Firebase (pode ficar no código:
+  // o acesso aos dados é protegido pela API e pelas regras do Firestore)
   firebase: {
-    apiKey: '',
+    apiKey: 'AIzaSyBdMPioBp9dILlziH3OCH3d7rqsiCPAcUg',
     authDomain: 'aurorapet-fiap.firebaseapp.com',
     projectId: 'aurorapet-fiap',
     storageBucket: 'aurorapet-fiap.firebasestorage.app',
-    messagingSenderId: '',
-    appId: '',
+    messagingSenderId: '509040536729',
+    appId: '1:509040536729:web:3e2a99e9d999301a95dc08',
   },
 };
 
