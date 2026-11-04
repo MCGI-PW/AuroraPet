@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Href, useRouter } from 'expo-router';
+import { formatDate } from '../../src/domain/appointmentRules';
 import { ROUTES } from '../../src/navigation/routes';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useClinicProfile, useSpecialists } from '../../src/hooks/useClinic';
@@ -254,7 +255,7 @@ export default function ClinicDashboardPage() {
                     {item.serviceName} • {item.specialistName}
                   </Text>
                   <Text style={[styles.appDate, { color: colors.textMuted }]}>
-                    Data: {item.date} às {item.time}
+                    Data: {formatDate(item.date)} às {item.time}
                   </Text>
                 </View>
               </View>

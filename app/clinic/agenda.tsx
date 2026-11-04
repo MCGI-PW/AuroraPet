@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Href, useRouter } from 'expo-router';
+import { formatDate } from '../../src/domain/appointmentRules';
 import { ROUTES } from '../../src/navigation/routes';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAppointments } from '../../src/hooks/useAppointments';
@@ -253,7 +254,7 @@ export default function ClinicAgendaPage() {
                   <View style={styles.metaItem}>
                     <Clock size={14} color={colors.textSecondary} />
                     <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                      Agendado para: <Text style={{ color: colors.text, fontWeight: '700' }}>{item.date} às {item.time}</Text>
+                      Agendado para: <Text style={{ color: colors.text, fontWeight: '700' }}>{formatDate(item.date)} às {item.time}</Text>
                     </Text>
                   </View>
                 </View>

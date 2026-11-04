@@ -12,6 +12,7 @@ import {
 import { useTheme } from '../../contexts/ThemeContext';
 import { Appointment } from '../../types/appointment';
 import { formatReportAsText } from '../../domain/reportFormatter';
+import { formatDate } from '../../domain/appointmentRules';
 import { useClinicProfile } from '../../hooks/useClinic';
 import {
   FileText,
