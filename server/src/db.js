@@ -65,4 +65,7 @@ function setDoc(name, value) {
 const newId = (prefix) => `${prefix}-${crypto.randomUUID()}`;
 const nowIso = () => new Date().toISOString();
 
-module.exports = { init, collection, getDoc, setDoc, save, newId, nowIso };
+/** Tipo de persistência ativo (exibido no healthcheck). */
+const storageKind = () => (serviceAccount ? 'firestore' : 'file');
+
+module.exports = { init, storageKind, collection, getDoc, setDoc, save, newId, nowIso };

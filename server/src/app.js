@@ -1,13 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const { HttpError } = require('./errors');
+const { storageKind } = require('./db');
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'online', service: 'AuroraPet API', timestamp: new Date().toISOString() });
+  res.json({ status: 'online', service: 'AuroraPet API', storage: storageKind(), timestamp: new Date().toISOString() });
 });
 
 app.use('/api', require('./routes/clinic'));
