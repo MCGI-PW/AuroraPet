@@ -192,4 +192,17 @@ test('fluxo completo: tutor agenda, veterinário atende e tutor recebe o laudo',
   // exclusão do pet
   assert.equal((await tutor.del(`/pets/${petId}`)).status, 200);
   assert.equal((await tutor.get('/pets')).body.length, 0);
+
+  // exclusão da conta (LGPD): veterinário com consultas é desvinculado e desativado
+  assert.equal((await vet.del('/users/me')).status, 200);
+  const unlinked = (await tutor.get(`/specialists/${specialist.id}`)).body;
+  assert.equal(unlinked.active, false);
+  assert.equal(unlinked.email, '');
+  assert.equal((await vet.get('/notifications')).body.length, 0);
+
+  // tutor excluído: perfil recriado do zero no próximo acesso
+  assert.equal((await tutor.del('/users/me')).status, 200);
+  const fresh = (await tutor.get('/users/me')).body;
+  assert.equal(fresh.profileCompleted, false);
+  assert.equal((await tutor.get('/appointments')).body.length, 0);
 });

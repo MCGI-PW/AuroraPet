@@ -72,4 +72,42 @@ router.put('/me', (req, res) => {
   res.json(profile);
 });
 
+/**
+ * Exclusão da conta (LGPD): remove o perfil e as notificações do usuário.
+ * Tutor: remove pets, consultas e autorizações. Veterinário: desvincula do
+ * corpo clínico (o cadastro do especialista é removido se não tiver consultas).
+ * A conta no Firebase Authentication é excluída pelo próprio app/cliente.
+ */
+router.delete('/me', (req, res) => {
+  const uid = req.auth.uid;
+  const profile = findUser(uid);
+  const remove = (name, predicate) => {
+    const list = db.collection(name);
+    for (let i = list.length - 1; i >= 0; i -= 1) if (predicate(list[i])) list.splice(i, 1);
+  };
+
+  if (profile?.role === 'tutor') {
+    const petIds = new Set(db.collection('pets').filter((p) => p.userId === uid).map((p) => p.id));
+    remove('pets', (p) => petIds.has(p.id));
+    remove('appointments', (a) => a.userId === uid);
+    remove('authorizations', (a) => a.tutorId === uid);
+  }
+
+  if (profile?.role === 'veterinarian' && profile.specialistId) {
+    const hasAppointments = db.collection('appointments').some((a) => a.specialistId === profile.specialistId);
+    if (hasAppointments) {
+      const specialist = db.collection('specialists').find((s) => s.id === profile.specialistId);
+      if (specialist) Object.assign(specialist, { email: '', active: false });
+    } else {
+      remove('specialists', (s) => s.id === profile.specialistId);
+    }
+    remove('requests', (r) => r.veterinarianUid === uid);
+  }
+
+  remove('notifications', (n) => n.userId === uid);
+  remove('users', (u) => u.uid === uid);
+  db.save();
+  res.json({ message: 'Conta e dados removidos.', uid });
+});
+
 module.exports = router;
